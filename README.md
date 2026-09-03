@@ -1,58 +1,43 @@
 # SupplyQuest DZ
 
-Intelligent multi-tenant supply chain management and business intelligence platform for Algerian SMEs.
+Phase 0 foundation for an intelligent, multi-tenant supply-chain management and business intelligence platform for Algerian SMEs.
 
-> 🚧 This project is under active development.
+> This project is under active development. Phase 1+ supply-chain workflows are intentionally not implemented yet.
 
-## Overview
+## Phase 0 foundation
 
-SupplyQuest DZ combines inventory management, procurement, sales,
-analytics, demand forecasting, supplier performance analysis, and
-explainable replenishment recommendations in a unified SaaS platform.
+- React + TypeScript + Vite + Tailwind CSS frontend
+- Node.js + Express + TypeScript REST API under `/api/v1/`
+- PostgreSQL + Prisma relational foundation
+- JWT authentication with bcrypt password hashing
+- Server-side organization isolation and reusable RBAC middleware
+- English, French, and Arabic locale switching with Arabic RTL support
+- DZD, date, number, and Algerian wilaya utilities
+- Deterministic synthetic demo seed data
+- API integration tests for auth, RBAC, and cross-organization isolation
 
-## Objectives
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the implemented boundaries and decisions. [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) remains the product source of truth.
 
-- Improve inventory visibility
-- Identify stockout and overstock risks
-- Analyze supplier performance
-- Forecast product demand
-- Generate explainable replenishment recommendations
-- Provide executive BI dashboards
-- Support French, Arabic, and English
+## Run locally
 
-## Technology
+Replit provides `DATABASE_URL` for its managed PostgreSQL database. For another environment:
 
-- React + TypeScript
-- Node.js + Express
-- PostgreSQL + Prisma
-- Python
-- Tailwind CSS
-- Recharts
+```bash
+cp .env.example .env
+npm install
+npm run db:generate
+npm run db:migrate -- --name foundation
+npm run db:seed
+npm run dev
+```
 
-## Architecture
+The app serves the frontend and API on port 5000. Run `npm test` for the Phase 0 API test suite and `npm run build` for the frontend/type-check build.
 
-Coming soon.
+Seeded demo users share the development password `DemoPass123!`; their emails are documented by the seed output and are intended for local/demo use only.
 
-## Features
+## Deferred phases
 
-- [ ] Authentication & RBAC
-- [ ] Multi-tenancy
-- [ ] Product management
-- [ ] Warehouse management
-- [ ] Inventory management
-- [ ] Procurement
-- [ ] Sales
-- [ ] Demand forecasting
-- [ ] Inventory intelligence
-- [ ] BI dashboards
-- [ ] Supply Quest recommendations
-- [ ] French / Arabic / English
-- [ ] Arabic RTL
-- [ ] Audit logging
-
-## Project Status
-
-Early development.
+Inventory transactions, purchasing and sales workflows, forecasting, advanced analytics, replenishment recommendations, Supply Quests, audit history, and the final BI dashboard belong to later phases.
 
 ## License
 
