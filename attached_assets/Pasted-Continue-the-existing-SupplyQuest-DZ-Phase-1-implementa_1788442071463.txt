@@ -1,0 +1,306 @@
+Continue the existing SupplyQuest DZ Phase 1 implementation from the current repository state.
+
+IMPORTANT:
+The previous Agent session was interrupted by the Replit quota while Phase 1 was still incomplete.
+
+The application currently has a startup/runtime error:
+
+TypeError: argument handler must be a function
+
+Stack trace:
+
+/home/runner/workspace/node_modules/router/lib/route.js:228
+    throw new TypeError('argument handler must be a function')
+
+at collection (...)
+at backend/src/modules/phase1/phase1.routes.ts:24:10
+
+The current app must be treated as an INCOMPLETE Phase 1 implementation.
+
+DO NOT restart Phase 1.
+DO NOT rebuild the application.
+DO NOT revert completed Phase 1 work.
+DO NOT replace the existing architecture.
+DO NOT upgrade Prisma major versions.
+
+==================================================
+FIRST PRIORITY — RESTORE A WORKING APPLICATION
+==================================================
+
+Inspect:
+
+backend/src/modules/phase1/phase1.routes.ts
+
+and the modules/functions it imports.
+
+Identify exactly why a non-function is being passed to an Express/router route registration.
+
+Fix the underlying issue cleanly.
+
+Do NOT simply comment out or delete the Phase 1 routes to hide the error.
+
+The goal is to preserve the intended Phase 1 functionality.
+
+After fixing the startup error:
+
+1. Start the backend.
+2. Verify the application starts successfully.
+3. Verify the existing Phase 0 authentication routes still work.
+4. Verify the Phase 1 routes can be registered without runtime errors.
+
+==================================================
+THEN — CONTINUE PHASE 1
+==================================================
+
+The previous Agent session had already completed or partially completed:
+
+- Prisma Phase 1 schema extension
+- tenant-safe relationships
+- inventory domain models
+- purchase order models
+- sales order models
+- transfer models
+- backend services/routes
+- Phase 1 migration
+- seed-data implementation
+- seed-data fixes
+
+Do not duplicate these.
+
+Inspect what exists and finish it.
+
+Priority order:
+
+1. Fix the current startup/router error.
+2. Finish and validate the seed script.
+3. Verify the Phase 1 migration remains correct.
+4. Verify the backend services and route/controller contracts.
+5. Complete missing backend functionality.
+6. Implement the Phase 1 frontend screens.
+7. Connect frontend screens to real backend APIs.
+8. Complete Phase 1 tests.
+9. Run all existing Phase 0 tests.
+10. Run all Phase 1 tests.
+11. Run TypeScript checks.
+12. Run the frontend production build.
+13. Verify the main workflows in the Replit preview.
+14. Fix any regressions.
+
+==================================================
+IMPORTANT — DO NOT HIDE ERRORS
+==================================================
+
+Do not solve the current error by:
+
+- commenting out routes
+- deleting Phase 1 modules
+- disabling route registration
+- bypassing validation
+- removing tests
+- reverting to Phase 0
+
+The correct fix must preserve the Phase 1 architecture and intended functionality.
+
+==================================================
+PHASE 1 SCOPE
+==================================================
+
+Phase 1 must provide:
+
+Products
+Categories
+Suppliers
+Customers
+Warehouses
+Inventory
+Inventory transactions
+Initial stock
+Stock adjustments
+Purchase orders
+Purchase receiving
+Sales orders
+Sales completion
+Warehouse transfers
+Inventory movement history
+
+Use real PostgreSQL data.
+
+All operations must remain organization-scoped.
+
+==================================================
+TRANSACTIONAL REQUIREMENTS
+==================================================
+
+Receiving must atomically:
+
+- validate PO
+- validate tenant ownership
+- validate quantities
+- create inventory transaction
+- update inventory
+- update received quantities
+- update PO status
+
+Sales completion must atomically:
+
+- validate order
+- verify stock
+- create SALE transaction(s)
+- decrease inventory
+- complete the order
+
+Transfers must atomically:
+
+- validate source/destination
+- validate stock
+- create TRANSFER_OUT
+- create TRANSFER_IN
+- update both inventory levels
+- complete the transfer
+
+Never leave partial inventory state.
+
+==================================================
+TENANT SAFETY
+==================================================
+
+Ensure cross-organization references are rejected.
+
+An organization A user must not be able to use:
+
+- organization B products
+- organization B categories
+- organization B suppliers
+- organization B customers
+- organization B warehouses
+
+Do not rely on frontend filtering.
+
+==================================================
+FRONTEND
+==================================================
+
+Use the existing:
+
+AppShell
+AuthContext
+API utilities
+UI components
+localization utilities
+
+Implement the Phase 1 screens only after the backend is stable.
+
+Required:
+
+/products
+/products/:id
+/categories
+/suppliers
+/suppliers/:id
+/customers
+/customers/:id
+/warehouses
+/warehouses/:id
+/inventory
+/inventory/movements
+/inventory/transfers
+/purchases
+/purchases/:id
+/sales
+/sales/:id
+
+Use real APIs.
+
+Do not hard-code business data.
+
+==================================================
+SEED
+==================================================
+
+Finish the existing seed implementation.
+
+It must successfully create:
+
+- existing Phase 0 demo data
+- inventory records
+- initial stock transactions
+- purchase orders
+- partially received PO
+- fully received PO
+- sales orders
+- transfers
+
+Make all quantities internally consistent.
+
+The seed must run successfully without manually patching the database.
+
+==================================================
+TESTS
+==================================================
+
+Do not remove existing Phase 0 tests.
+
+Add/finish Phase 1 tests for:
+
+- products
+- tenant-safe relationships
+- inventory
+- inventory transactions
+- stock adjustment
+- purchase creation
+- partial receiving
+- full receiving
+- over-receiving rejection
+- receiving updates inventory
+- sales completion
+- insufficient stock rejection
+- duplicate completion rejection
+- transfers
+- insufficient transfer stock
+- cross-organization isolation
+
+==================================================
+VALIDATION
+==================================================
+
+Before declaring Phase 1 complete:
+
+- backend starts successfully
+- frontend starts successfully
+- Prisma schema validates
+- Prisma client generates
+- migration status is correct
+- seed succeeds
+- all tests pass
+- TypeScript passes
+- frontend production build passes
+- main workflows work in the live preview
+
+Do not merely report what should work.
+
+Actually fix the current error and continue implementation.
+
+Do not stop after fixing only the startup error unless the quota is exhausted.
+
+Do not implement Phase 2 features:
+- forecasting
+- machine learning
+- advanced analytics
+- ABC analysis
+- stockout prediction
+- replenishment intelligence
+- supplier scoring
+- Supply Quests
+- Python analytics service
+
+At the end, report:
+
+- root cause of the router error
+- files changed
+- Phase 1 functionality completed
+- seed result
+- migration result
+- tests and results
+- TypeScript/build result
+- remaining Phase 1 work
+- whether the project is ready to commit to GitHub

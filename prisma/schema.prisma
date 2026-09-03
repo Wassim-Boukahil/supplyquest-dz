@@ -19,6 +19,11 @@ model Organization {
   products     Product[]
   suppliers    Supplier[]
   customers    Customer[]
+  inventoryLevels       InventoryLevel[]
+  inventoryTransactions InventoryTransaction[]
+  purchaseOrders        PurchaseOrder[]
+  salesOrders           SalesOrder[]
+  inventoryTransfers    InventoryTransfer[]
 
   @@map("organizations")
 }
@@ -35,6 +40,8 @@ model User {
   updatedAt      DateTime     @updatedAt @map("updated_at")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userRoles      UserRole[]
+  inventoryTransactions InventoryTransaction[]
+  inventoryTransfers    InventoryTransfer[]
 
   @@index([organizationId])
   @@map("users")
@@ -76,8 +83,15 @@ model Warehouse {
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inventoryLevels InventoryLevel[]
+  inventoryTransactions InventoryTransaction[]
+  purchaseOrders PurchaseOrder[]
+  salesOrders SalesOrder[]
+  sourceTransfers InventoryTransfer[] @relation("TransferSource")
+  destinationTransfers InventoryTransfer[] @relation("TransferDestination")
 
   @@unique([organizationId, code])
+  @@unique([id, organizationId])
   @@index([organizationId])
   @@map("warehouses")
 }
@@ -92,6 +106,7 @@ model ProductCategory {
   products       Product[]
 
   @@unique([organizationId, name])
+  @@unique([id, organizationId])
   @@index([organizationId])
   @@map("product_categories")
 }
@@ -113,10 +128,16 @@ model Product {
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  category       ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  preferredSupplier Supplier?    @relation(fields: [preferredSupplierId], references: [id], onDelete: SetNull)
+  category       ProductCategory? @relation(fields: [categoryId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  preferredSupplier Supplier?    @relation(fields: [preferredSupplierId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  inventoryLevels InventoryLevel[]
+  inventoryTransactions InventoryTransaction[]
+  purchaseOrderItems PurchaseOrderItem[]
+  salesOrderItems SalesOrderItem[]
+  transferItems InventoryTransferItem[]
 
   @@unique([organizationId, sku])
+  @@unique([id, organizationId])
   @@index([organizationId])
   @@index([categoryId])
   @@index([preferredSupplierId])
@@ -136,7 +157,9 @@ model Supplier {
   updatedAt      DateTime     @updatedAt @map("updated_at")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   products       Product[]
+  purchaseOrders PurchaseOrder[]
 
+  @@unique([id, organizationId])
   @@index([organizationId])
   @@map("suppliers")
 }
@@ -152,7 +175,9 @@ model Customer {
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  salesOrders SalesOrder[]
 
+  @@unique([id, organizationId])
   @@index([organizationId])
   @@map("customers")
 }
@@ -163,4 +188,206 @@ enum RoleName {
   PURCHASER
   ANALYST
   OPERATOR
+}
+
+enum InventoryTransactionType {
+  INITIAL_STOCK
+  PURCHASE_RECEIPT
+  SALE
+  CUSTOMER_RETURN
+  SUPPLIER_RETURN
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum SalesOrderStatus {
+  DRAFT
+  CONFIRMED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryTransferStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model InventoryLevel {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  productId      String       @map("product_id") @db.Uuid
+  warehouseId    String       @map("warehouse_id") @db.Uuid
+  onHandQuantity Int          @default(0) @map("on_hand_quantity")
+  reservedQuantity Int        @default(0) @map("reserved_quantity")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  warehouse      Warehouse    @relation(fields: [warehouseId, organizationId], references: [id, organizationId], onDelete: Cascade)
+
+  @@unique([organizationId, productId, warehouseId])
+  @@index([organizationId])
+  @@index([productId])
+  @@index([warehouseId])
+  @@map("inventory_levels")
+}
+
+model InventoryTransaction {
+  id             String                    @id @default(uuid()) @db.Uuid
+  organizationId String                    @map("organization_id") @db.Uuid
+  productId      String                    @map("product_id") @db.Uuid
+  warehouseId    String                    @map("warehouse_id") @db.Uuid
+  quantity       Int
+  type           InventoryTransactionType
+  referenceType  String?                   @map("reference_type")
+  referenceId    String?                   @map("reference_id") @db.Uuid
+  reason         String?
+  actorId        String                    @map("actor_id") @db.Uuid
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product        Product                   @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  warehouse      Warehouse                 @relation(fields: [warehouseId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  actor          User                      @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("inventory_transactions")
+}
+
+model PurchaseOrder {
+  id                  String             @id @default(uuid()) @db.Uuid
+  organizationId      String             @map("organization_id") @db.Uuid
+  supplierId          String             @map("supplier_id") @db.Uuid
+  warehouseId         String             @map("warehouse_id") @db.Uuid
+  orderNumber         String             @map("order_number")
+  status              PurchaseOrderStatus @default(DRAFT)
+  orderDate           DateTime           @default(now()) @map("order_date")
+  expectedDeliveryDate DateTime?         @map("expected_delivery_date")
+  notes               String?
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  organization        Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplier            Supplier           @relation(fields: [supplierId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  warehouse           Warehouse          @relation(fields: [warehouseId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  items               PurchaseOrderItem[]
+
+  @@unique([organizationId, orderNumber])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([supplierId])
+  @@index([warehouseId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid()) @db.Uuid
+  organizationId  String        @map("organization_id") @db.Uuid
+  purchaseOrderId String        @map("purchase_order_id") @db.Uuid
+  productId       String        @map("product_id") @db.Uuid
+  orderedQuantity  Int           @map("ordered_quantity")
+  receivedQuantity Int           @default(0) @map("received_quantity")
+  purchaseUnitPrice Decimal      @map("purchase_unit_price") @db.Decimal(12, 2)
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  product         Product       @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([purchaseOrderId])
+  @@index([productId])
+  @@map("purchase_order_items")
+}
+
+model SalesOrder {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  customerId     String          @map("customer_id") @db.Uuid
+  warehouseId    String          @map("warehouse_id") @db.Uuid
+  orderNumber    String          @map("order_number")
+  status         SalesOrderStatus @default(DRAFT)
+  orderDate      DateTime        @default(now()) @map("order_date")
+  notes          String?
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  organization  Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer      Customer         @relation(fields: [customerId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  warehouse     Warehouse        @relation(fields: [warehouseId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  items         SalesOrderItem[]
+
+  @@unique([organizationId, orderNumber])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([customerId])
+  @@index([warehouseId])
+  @@index([status])
+  @@map("sales_orders")
+}
+
+model SalesOrderItem {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @map("organization_id") @db.Uuid
+  salesOrderId   String     @map("sales_order_id") @db.Uuid
+  productId      String     @map("product_id") @db.Uuid
+  quantity       Int
+  sellingUnitPrice Decimal  @map("selling_unit_price") @db.Decimal(12, 2)
+  salesOrder     SalesOrder @relation(fields: [salesOrderId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  product        Product    @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([salesOrderId])
+  @@index([productId])
+  @@map("sales_order_items")
+}
+
+model InventoryTransfer {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  organizationId      String                  @map("organization_id") @db.Uuid
+  sourceWarehouseId   String                  @map("source_warehouse_id") @db.Uuid
+  destinationWarehouseId String                @map("destination_warehouse_id") @db.Uuid
+  status              InventoryTransferStatus  @default(PENDING)
+  actorId             String                  @map("actor_id") @db.Uuid
+  notes               String?
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+  organization        Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceWarehouse     Warehouse               @relation("TransferSource", fields: [sourceWarehouseId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  destinationWarehouse Warehouse              @relation("TransferDestination", fields: [destinationWarehouseId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  actor               User                    @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  items               InventoryTransferItem[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([sourceWarehouseId])
+  @@index([destinationWarehouseId])
+  @@index([status])
+  @@map("inventory_transfers")
+}
+
+model InventoryTransferItem {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  transferId     String            @map("transfer_id") @db.Uuid
+  productId      String            @map("product_id") @db.Uuid
+  quantity       Int
+  transfer       InventoryTransfer @relation(fields: [transferId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  product        Product           @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([transferId])
+  @@index([productId])
+  @@map("inventory_transfer_items")
 }

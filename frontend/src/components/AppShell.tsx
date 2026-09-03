@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { BarChart3, Boxes, ChevronDown, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, Truck, Users, Warehouse } from "lucide-react";
+import { ArrowRightLeft, BarChart3, Boxes, ChevronDown, CircleHelp, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Settings, ShoppingCart, Truck, Users, Warehouse } from "lucide-react";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLocale, type Locale } from "../lib/i18n";
 import { Button, Select } from "./ui";
@@ -8,8 +9,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const { t, locale, setLocale } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const plannedItems = [
-    [Boxes, t("products")], [Warehouse, t("warehouses")], [Truck, t("suppliers")], [BarChart3, "Analytics"],
+  const catalogItems = [
+    [Boxes, t("products"), "/products"], [Package, t("categories"), "/categories"], [Truck, t("suppliers"), "/suppliers"],
+    [Users, t("customers"), "/customers"], [Warehouse, t("warehouses"), "/warehouses"],
+  ] as const;
+  const operationsItems = [
+    [ClipboardList, "Inventory", "/inventory"], [ArrowRightLeft, "Transfers", "/inventory/transfers"],
+    [ShoppingCart, "Purchases", "/purchases"], [ShoppingCart, "Sales", "/sales"],
   ] as const;
   return <div className="app-shell">
     <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
@@ -17,10 +23,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="workspace-switcher"><span className="eyebrow">WORKSPACE</span><strong>{user?.organization.name}</strong><ChevronDown size={15} /></div>
       <nav className="sidebar-nav">
         <p className="nav-label">{t("overview")}</p>
-        <a className="nav-item active" href="#dashboard"><LayoutDashboard size={18} />{t("foundation")}</a>
-        <p className="nav-label section-gap">{t("planned")}</p>
-        {plannedItems.map(([Icon, label]) => <div className="nav-item disabled" key={label}><Icon size={18} />{label}<span className="nav-dot" /></div>)}
-        <a className="nav-item" href="#settings"><Settings size={18} />{t("settings")}</a>
+        <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to="/dashboard" onClick={() => setMobileOpen(false)}><LayoutDashboard size={18} />{t("overview")}</NavLink>
+        <p className="nav-label section-gap">Catalog</p>
+        {catalogItems.map(([Icon, label, path]) => <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to={path} key={path} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavLink>)}
+        <p className="nav-label section-gap">Operations</p>
+        {operationsItems.map(([Icon, label, path]) => <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to={path} key={path} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavLink>)}
+        <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to="/settings"><Settings size={18} />{t("settings")}</NavLink>
       </nav>
       <div className="sidebar-help"><CircleHelp size={17} /><div><strong>Need a hand?</strong><span>Read the foundation guide</span></div></div>
     </aside>

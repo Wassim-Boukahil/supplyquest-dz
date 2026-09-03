@@ -1,0 +1,1 @@
+- [Phase 1 backend integration](phase1-backend-integration.md) — Express Route objects accept handlers only; Prisma composite tenant relations constrain nested writes and delete behavior.

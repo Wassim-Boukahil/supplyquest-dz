@@ -1,0 +1,1221 @@
+You are the lead software architect and senior full-stack engineer continuing development of the existing SupplyQuest DZ repository.
+
+==================================================
+PHASE 1 — CORE SUPPLY CHAIN ENGINE
+==================================================
+
+IMPORTANT:
+
+Phase 0 is already implemented, tested, committed, and pushed to GitHub.
+
+The repository already contains a working modular-monolith foundation with:
+
+- React + Vite + TypeScript frontend
+- Node.js + Express + TypeScript backend
+- PostgreSQL + Prisma
+- JWT authentication
+- bcrypt password hashing
+- RBAC
+- multi-tenancy
+- organization isolation
+- localization foundation
+- Arabic RTL foundation
+- seed data
+- automated API tests
+
+DO NOT rebuild Phase 0.
+
+DO NOT create a new application.
+
+DO NOT replace the existing architecture.
+
+DO NOT upgrade Prisma to another major version.
+
+DO NOT introduce unnecessary infrastructure.
+
+DO NOT spend this session writing a long implementation plan or merely explaining what you will do.
+
+After a brief inspection of the existing repository, BEGIN IMPLEMENTATION IMMEDIATELY.
+
+The goal is to maximize this Agent session by implementing a complete, coherent Phase 1 vertical slice.
+
+==================================================
+SOURCE OF TRUTH
+==================================================
+
+Read:
+
+docs/PRODUCT_SPEC.md
+docs/ARCHITECTURE.md
+
+Treat them as the product and architecture references.
+
+Preserve the current project structure and conventions.
+
+Existing important paths include:
+
+backend/src/
+  app.ts
+  config.ts
+  server.ts
+  db/prisma.ts
+  middleware/
+  modules/auth/
+  modules/foundation/
+  types/
+  utils/
+
+frontend/src/
+  App.tsx
+  components/
+  context/
+  data/
+  lib/
+  pages/
+
+prisma/
+  schema.prisma
+  migrations/
+  seed.ts
+
+tests/
+  api.test.ts
+
+==================================================
+PHASE 1 OBJECTIVE
+==================================================
+
+Turn the Phase 0 foundation into a functional supply-chain management application.
+
+At the end of Phase 1, a demo user must be able to:
+
+1. Manage products.
+2. Manage product categories.
+3. Manage suppliers.
+4. Manage customers.
+5. Manage warehouses.
+6. View and manage inventory.
+7. Create purchase orders.
+8. Receive purchased goods.
+9. Create sales orders.
+10. Complete sales orders.
+11. Automatically update inventory through inventory transactions.
+12. Adjust stock when authorized.
+13. Transfer stock between warehouses.
+14. View inventory movement history.
+15. Use all of the above through a working React interface.
+16. Maintain strict organization-level tenant isolation.
+
+The implementation must use real PostgreSQL data.
+
+Do NOT hard-code business values into the frontend.
+
+==================================================
+STRICT SCOPE
+==================================================
+
+Implement Phase 1 only.
+
+DO NOT implement:
+
+- demand forecasting
+- machine learning
+- advanced forecasting
+- stockout prediction
+- automated replenishment
+- ABC analysis
+- supplier scoring
+- advanced BI dashboard
+- Supply Quests
+- Python analytics service
+- predictive recommendations
+
+Those belong to later phases.
+
+==================================================
+ARCHITECTURE
+==================================================
+
+Preserve the existing modular monolith.
+
+Extend:
+
+backend/src/modules/
+
+Create modules as appropriate:
+
+products/
+categories/
+suppliers/
+customers/
+warehouses/
+inventory/
+purchases/
+sales/
+
+Use the established architecture:
+
+routes
+controllers
+services
+schemas
+database access
+
+Keep controllers thin.
+
+Keep business rules in services.
+
+Reuse existing:
+
+authenticate
+authorize
+validateBody
+AppError
+errorHandler
+sendSuccess
+sendError
+prisma
+
+Do not duplicate existing infrastructure.
+
+==================================================
+DATABASE
+==================================================
+
+Extend the existing Prisma schema.
+
+Do NOT edit existing applied migration files.
+
+Create a NEW Prisma migration for Phase 1.
+
+Do NOT reset the database.
+
+Do NOT delete the existing Phase 0 data unexpectedly.
+
+Add at minimum:
+
+inventory_levels
+inventory_transactions
+
+purchase_orders
+purchase_order_items
+
+sales_orders
+sales_order_items
+
+inventory_transfers
+inventory_transfer_items
+
+Add supporting fields/entities only when necessary.
+
+Use UUID primary keys.
+
+Use created_at and updated_at appropriately.
+
+Use PostgreSQL NUMERIC/DECIMAL for monetary amounts.
+
+Use appropriate numeric/integer types for quantities.
+
+Add foreign keys, unique constraints and indexes.
+
+==================================================
+TENANT-SAFE RELATIONSHIPS
+==================================================
+
+This is a required Phase 1 improvement.
+
+The existing Product model references category and preferred supplier by ID, but tenant ownership is not independently guaranteed at the database level.
+
+Ensure the application cannot create or use cross-organization relationships.
+
+A user from Organization A must never be able to:
+
+- assign an Organization B category to a product
+- assign an Organization B supplier to a product
+- place a purchase order against an Organization B supplier
+- place a sales order against an Organization B customer
+- use an Organization B warehouse
+- use an Organization B product
+- perform inventory operations using Organization B entities
+
+Enforce this server-side in the service layer.
+
+Where practical, use database-level composite tenant-safe constraints.
+
+Do not rely on frontend filtering.
+
+==================================================
+INVENTORY MODEL
+==================================================
+
+Inventory is tracked per:
+
+organization
+product
+warehouse
+
+Create one inventory-level record per:
+
+organization + product + warehouse
+
+Use a unique constraint.
+
+Track:
+
+on_hand_quantity
+reserved_quantity
+
+Available quantity is:
+
+on_hand_quantity - reserved_quantity
+
+Do not redundantly store available quantity unless justified.
+
+==================================================
+INVENTORY TRANSACTIONS
+==================================================
+
+Inventory history must be represented by immutable inventory transactions.
+
+Transaction types:
+
+INITIAL_STOCK
+PURCHASE_RECEIPT
+SALE
+CUSTOMER_RETURN
+SUPPLIER_RETURN
+ADJUSTMENT_IN
+ADJUSTMENT_OUT
+TRANSFER_IN
+TRANSFER_OUT
+
+Each transaction must include enough information to audit:
+
+- organization
+- product
+- warehouse
+- quantity
+- transaction type
+- reference type
+- reference ID where relevant
+- actor/user
+- timestamp
+
+Do not implement stock by simply changing a number with no transaction history.
+
+Every stock-changing workflow must produce an inventory transaction.
+
+==================================================
+DATABASE TRANSACTIONS
+==================================================
+
+Stock-changing workflows must be atomic.
+
+Use Prisma/database transactions where appropriate.
+
+PURCHASE RECEIVING must atomically:
+
+1. validate purchase order
+2. validate tenant ownership
+3. validate quantities
+4. create inventory transaction
+5. update inventory level
+6. update received quantities
+7. update purchase-order status
+
+SALES COMPLETION must atomically:
+
+1. validate order
+2. validate tenant ownership
+3. validate stock
+4. create SALE transaction(s)
+5. decrement inventory
+6. update order status
+
+WAREHOUSE TRANSFER must atomically:
+
+1. validate source
+2. validate destination
+3. validate stock
+4. create TRANSFER_OUT
+5. create TRANSFER_IN
+6. update both inventory levels
+7. mark transfer completed
+
+If any step fails, none of the changes should persist.
+
+==================================================
+PRODUCTS
+==================================================
+
+Implement complete product CRUD.
+
+Use the existing product fields and extend only where necessary.
+
+Required fields include:
+
+SKU
+name
+description
+unit
+purchase price
+selling price
+minimum stock
+safety stock
+category
+preferred supplier
+active/inactive
+
+Rules:
+
+- SKU unique within organization
+- category must belong to same organization
+- preferred supplier must belong to same organization
+- prices must be NUMERIC/DECIMAL
+- stock configuration values cannot be invalid/negative
+
+API:
+
+POST /api/v1/products
+GET /api/v1/products
+GET /api/v1/products/:id
+PATCH /api/v1/products/:id
+POST /api/v1/products/:id/archive
+POST /api/v1/products/:id/activate
+
+Support pagination and search.
+
+==================================================
+CATEGORIES
+==================================================
+
+Implement CRUD.
+
+Category name unique within organization.
+
+API:
+
+POST /api/v1/categories
+GET /api/v1/categories
+GET /api/v1/categories/:id
+PATCH /api/v1/categories/:id
+DELETE /api/v1/categories/:id
+
+Do not allow deleting a category if existing business rules make the deletion unsafe.
+
+Handle dependent products appropriately.
+
+==================================================
+SUPPLIERS
+==================================================
+
+Implement CRUD.
+
+Fields:
+
+name
+email
+phone
+address
+wilaya
+average lead time
+
+API:
+
+POST /api/v1/suppliers
+GET /api/v1/suppliers
+GET /api/v1/suppliers/:id
+PATCH /api/v1/suppliers/:id
+POST /api/v1/suppliers/:id/archive
+POST /api/v1/suppliers/:id/activate
+
+Support search/pagination.
+
+Do not implement advanced supplier scoring yet.
+
+==================================================
+CUSTOMERS
+==================================================
+
+Implement CRUD.
+
+Fields:
+
+name
+email
+phone
+address
+wilaya
+
+API:
+
+POST /api/v1/customers
+GET /api/v1/customers
+GET /api/v1/customers/:id
+PATCH /api/v1/customers/:id
+POST /api/v1/customers/:id/archive
+POST /api/v1/customers/:id/activate
+
+Support search/pagination.
+
+==================================================
+WAREHOUSES
+==================================================
+
+Implement CRUD.
+
+Fields:
+
+name
+code
+location
+wilaya
+capacity
+active/inactive
+
+Warehouse code unique within organization.
+
+API:
+
+POST /api/v1/warehouses
+GET /api/v1/warehouses
+GET /api/v1/warehouses/:id
+PATCH /api/v1/warehouses/:id
+POST /api/v1/warehouses/:id/archive
+POST /api/v1/warehouses/:id/activate
+
+==================================================
+INITIAL STOCK
+==================================================
+
+Create a controlled way for authorized users to establish initial inventory.
+
+Every initial-stock operation must:
+
+- create INITIAL_STOCK inventory transaction
+- update inventory level
+- record actor
+- be transactional
+
+Never silently change inventory.
+
+==================================================
+STOCK ADJUSTMENTS
+==================================================
+
+Authorized roles may adjust inventory.
+
+Required:
+
+product
+warehouse
+quantity
+direction
+reason
+
+Create:
+
+ADJUSTMENT_IN
+
+or
+
+ADJUSTMENT_OUT
+
+Prevent invalid negative stock unless an explicitly authorized override is deliberately implemented and audited.
+
+==================================================
+INVENTORY API
+==================================================
+
+Implement endpoints for:
+
+GET /api/v1/inventory
+GET /api/v1/inventory/:id
+GET /api/v1/inventory/transactions
+POST /api/v1/inventory/initial-stock
+POST /api/v1/inventory/adjustments
+
+Support filtering by:
+
+warehouse
+product
+category
+transaction type
+date
+
+Use pagination.
+
+Calculate inventory value from:
+
+on_hand_quantity × purchase_price
+
+for Phase 1.
+
+Do not implement sophisticated inventory valuation yet.
+
+==================================================
+PURCHASE ORDERS
+==================================================
+
+Implement purchase orders.
+
+Purchase order fields:
+
+supplier
+warehouse
+order number
+status
+order date
+expected delivery date
+notes
+
+Items:
+
+product
+ordered quantity
+received quantity
+purchase unit price
+
+Statuses:
+
+DRAFT
+ORDERED
+PARTIALLY_RECEIVED
+RECEIVED
+CANCELLED
+
+Rules:
+
+DRAFT can be edited.
+
+ORDERED is an active order.
+
+Receiving cannot exceed ordered quantity.
+
+PARTIALLY_RECEIVED means some but not all quantities have been received.
+
+RECEIVED means all ordered quantities have been received.
+
+CANCELLED cannot be received.
+
+Do not allow arbitrary status changes that bypass business rules.
+
+Generate an organization-scoped purchase-order number.
+
+==================================================
+PURCHASE RECEIVING
+==================================================
+
+Implement:
+
+POST /api/v1/purchases/:id/receive
+
+Accept received quantities.
+
+Rules:
+
+- purchase order must belong to current organization
+- supplier must belong to current organization
+- warehouse must belong to current organization
+- products must belong to current organization
+- received quantity cannot exceed remaining quantity
+- cancelled PO cannot be received
+
+Receiving must update:
+
+inventory
+inventory transactions
+received quantities
+PO status
+
+all in one transaction.
+
+==================================================
+SALES ORDERS
+==================================================
+
+Implement sales orders.
+
+Fields:
+
+customer
+warehouse
+order number
+status
+order date
+notes
+
+Items:
+
+product
+quantity
+selling price
+
+Statuses:
+
+DRAFT
+CONFIRMED
+PROCESSING
+COMPLETED
+CANCELLED
+
+Rules:
+
+DRAFT may be edited.
+
+CONFIRMED represents an active order.
+
+COMPLETED decreases stock.
+
+CANCELLED does not decrease stock.
+
+An already COMPLETED order cannot be completed again.
+
+Insufficient stock must reject completion.
+
+Do not allow negative inventory by default.
+
+Generate organization-scoped sales-order numbers.
+
+==================================================
+SALES COMPLETION
+==================================================
+
+Implement:
+
+POST /api/v1/sales/:id/complete
+
+Before completion:
+
+- validate order
+- validate tenant ownership
+- verify stock for every line
+- reject the entire transaction if any line lacks stock
+
+On success:
+
+- create SALE transaction for each line
+- decrement inventory
+- mark order COMPLETED
+
+Everything must happen atomically.
+
+==================================================
+WAREHOUSE TRANSFERS
+==================================================
+
+Implement:
+
+POST /api/v1/inventory/transfers
+GET /api/v1/inventory/transfers
+GET /api/v1/inventory/transfers/:id
+POST /api/v1/inventory/transfers/:id/complete
+POST /api/v1/inventory/transfers/:id/cancel
+
+Fields:
+
+source warehouse
+destination warehouse
+products
+quantities
+status
+actor
+timestamps
+
+Statuses:
+
+PENDING
+COMPLETED
+CANCELLED
+
+Rules:
+
+- source and destination cannot be identical
+- both warehouses must belong to current organization
+- products must belong to current organization
+- quantity must be positive
+- sufficient source inventory is required
+- completed transfer cannot be completed twice
+- cancelled transfer cannot be completed
+
+Completed transfer creates:
+
+TRANSFER_OUT
+
+and
+
+TRANSFER_IN
+
+within one transaction.
+
+==================================================
+ROLE ACCESS
+==================================================
+
+Reuse:
+
+ADMIN
+MANAGER
+PURCHASER
+ANALYST
+OPERATOR
+
+Use sensible authorization.
+
+Suggested minimum:
+
+ADMIN:
+full Phase 1 access
+
+MANAGER:
+business management and operational access
+
+PURCHASER:
+suppliers
+purchase orders
+receiving
+inventory viewing
+
+OPERATOR:
+operational inventory
+receiving
+sales operations
+
+ANALYST:
+read-only access
+
+Do not introduce a large permission framework.
+
+==================================================
+FRONTEND
+==================================================
+
+Extend the existing React app.
+
+Do not replace:
+
+AppShell
+AuthContext
+existing UI primitives
+API utility
+localization utilities
+
+Create working screens for:
+
+/products
+/products/:id
+/categories
+/suppliers
+/suppliers/:id
+/customers
+/customers/:id
+/warehouses
+/warehouses/:id
+/inventory
+/inventory/movements
+/inventory/transfers
+/purchases
+/purchases/:id
+/sales
+/sales/:id
+
+Use real backend APIs.
+
+Implement:
+
+- tables
+- search
+- pagination
+- filters
+- forms
+- loading states
+- error states
+- empty states
+- confirmation dialogs
+- success feedback
+- validation feedback
+
+Do not create placeholder-only pages.
+
+==================================================
+PRODUCT SCREEN
+==================================================
+
+Product list:
+
+- search by SKU/name
+- category filter
+- active/inactive filter
+- pagination
+
+Product detail:
+
+- product information
+- supplier
+- category
+- current inventory by warehouse
+- total on-hand
+- recent inventory movements
+
+Do not show future forecasting features yet.
+
+==================================================
+INVENTORY SCREEN
+==================================================
+
+Create an operational inventory table.
+
+Columns:
+
+SKU
+Product
+Warehouse
+On Hand
+Reserved
+Available
+Unit
+Purchase Price
+Inventory Value
+
+Filters:
+
+warehouse
+category
+product search
+
+Add a link to inventory movement history.
+
+==================================================
+PURCHASE SCREEN
+==================================================
+
+Create:
+
+purchase order list
+create purchase order
+purchase order detail
+receiving workflow
+
+Show:
+
+supplier
+warehouse
+status
+order date
+expected date
+items
+ordered quantity
+received quantity
+remaining quantity
+
+Receiving UI must use backend validation.
+
+==================================================
+SALES SCREEN
+==================================================
+
+Create:
+
+sales order list
+create sales order
+sales order detail
+completion workflow
+
+Before completing:
+
+show available inventory for each item.
+
+If insufficient stock exists, make the problem clear before submission.
+
+Backend remains authoritative.
+
+==================================================
+TRANSFER SCREEN
+==================================================
+
+Create a warehouse-transfer UI.
+
+Allow:
+
+source warehouse
+destination warehouse
+products
+quantities
+
+Show transfer status and history.
+
+==================================================
+INVENTORY MOVEMENT SCREEN
+==================================================
+
+Create searchable history with:
+
+date
+product
+warehouse
+transaction type
+quantity
+reference
+actor
+
+Support filtering and pagination.
+
+==================================================
+LOCALIZATION
+==================================================
+
+Reuse the existing localization foundation.
+
+Do not rewrite it.
+
+New Phase 1 user-facing strings must be added to the translation structure.
+
+Support:
+
+English
+French
+Arabic
+
+Arabic must remain RTL.
+
+DZD remains the main currency.
+
+Use existing formatDzd / formatNumber / formatDate utilities when appropriate.
+
+Do not leave new pages entirely hard-coded in English.
+
+==================================================
+SEED DATA
+==================================================
+
+Extend the existing seed system.
+
+Preserve the existing demo organizations and users.
+
+Add realistic Phase 1 data:
+
+- inventory records across multiple warehouses
+- initial-stock transactions
+- purchase orders
+- at least one partially received PO
+- at least one fully received PO
+- sales orders
+- inventory transfers
+- realistic quantities
+- multiple products across warehouses
+
+The seeded data must make the new screens useful immediately after setup.
+
+Do not use real private data.
+
+Keep the seed repeatable for controlled development/demo use.
+
+==================================================
+TESTING
+==================================================
+
+Extend tests rather than replacing the existing API suite.
+
+Keep all existing Phase 0 tests passing.
+
+Add tests for:
+
+PRODUCT:
+- create
+- read
+- update
+- organization isolation
+- category tenant validation
+- supplier tenant validation
+
+CATEGORY:
+- organization isolation
+
+SUPPLIER:
+- organization isolation
+
+WAREHOUSE:
+- organization isolation
+
+INVENTORY:
+- initial stock
+- adjustment in
+- adjustment out
+- resulting inventory balance
+- transaction creation
+- organization isolation
+
+PURCHASING:
+- create purchase order
+- receive partially
+- receive fully
+- prevent receiving beyond ordered
+- receiving updates inventory
+- receiving is atomic
+- cancelled PO cannot be received
+
+SALES:
+- create sales order
+- complete sale
+- inventory decreases
+- insufficient stock rejected
+- cannot complete twice
+- completion is atomic
+
+TRANSFERS:
+- create transfer
+- complete transfer
+- source decreases
+- destination increases
+- insufficient source stock rejected
+- source equals destination rejected
+- cross-organization transfer rejected
+- completed transfer cannot complete twice
+
+TENANT SAFETY:
+Explicitly prove an Organization A user cannot:
+
+- read Organization B products
+- read Organization B suppliers
+- read Organization B categories
+- read Organization B customers
+- read Organization B warehouses
+- use Organization B entities in new orders or transfers
+
+==================================================
+DATABASE MIGRATION
+==================================================
+
+Create a NEW Prisma migration.
+
+Do not modify the previously applied Phase 0 migration.
+
+Do not reset the database.
+
+Run:
+
+- Prisma validation
+- Prisma generate
+- migration
+- seed
+
+Verify the resulting schema.
+
+==================================================
+PERFORMANCE
+==================================================
+
+Use pagination.
+
+Add appropriate indexes for:
+
+organization_id
+product_id
+warehouse_id
+supplier_id
+customer_id
+purchase_order_id
+sales_order_id
+created_at / transaction timestamps
+
+Do not load unbounded tables.
+
+Do not prematurely optimize.
+
+==================================================
+DOCUMENTATION
+==================================================
+
+Update:
+
+docs/ARCHITECTURE.md
+
+Document:
+
+- Phase 1 modules
+- inventory model
+- inventory transaction model
+- purchasing workflow
+- receiving transaction
+- sales completion transaction
+- warehouse transfer transaction
+- tenant-safe relationship strategy
+
+Update README.md only for genuinely implemented functionality.
+
+Do not claim Phase 2/3 features are complete.
+
+==================================================
+IMPORTANT IMPLEMENTATION RULE
+==================================================
+
+This is a limited Agent-usage environment.
+
+Do not spend substantial time explaining the plan before implementation.
+
+Inspect the existing code briefly, then implement the Phase 1 vertical slice.
+
+When encountering a problem:
+
+1. diagnose it
+2. fix it
+3. continue implementation
+4. run the relevant tests again
+
+Do not stop merely because one minor issue is encountered.
+
+Do not ask unnecessary clarification questions when the requirements above are sufficiently specific.
+
+==================================================
+DEFINITION OF DONE
+==================================================
+
+Phase 1 is complete only when:
+
+- Phase 0 tests still pass
+- TypeScript check passes
+- Prisma validation passes
+- migration succeeds
+- seed succeeds
+- products work
+- categories work
+- suppliers work
+- customers work
+- warehouses work
+- inventory works
+- inventory transactions work
+- purchase orders work
+- receiving works
+- sales orders work
+- sales completion works
+- transfers work
+- tenant isolation works
+- RBAC works
+- frontend routes work
+- frontend communicates with the real API
+- no obvious runtime/build errors remain
+
+Before finishing:
+
+1. run tests
+2. run TypeScript checks
+3. build the frontend
+4. verify migration state
+5. verify seed
+6. manually inspect the major workflows in the Replit preview where practical
+7. fix errors introduced during Phase 1
+
+At the end provide:
+
+- files created/changed
+- database models added/changed
+- migration name
+- API endpoints added
+- frontend routes added
+- inventory rules implemented
+- transaction boundaries
+- tests and results
+- known limitations
+- anything intentionally deferred to Phase 2
+
+Do NOT begin Phase 2 automatically.

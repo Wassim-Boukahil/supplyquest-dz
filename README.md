@@ -1,10 +1,8 @@
 # SupplyQuest DZ
 
-Phase 0 foundation for an intelligent, multi-tenant supply-chain management and business intelligence platform for Algerian SMEs.
+Phase 1 core supply-chain platform for Algerian SMEs, with a multi-tenant PostgreSQL backend and a React operations workspace.
 
-> This project is under active development. Phase 1+ supply-chain workflows are intentionally not implemented yet.
-
-## Phase 0 foundation
+## Implemented foundation and Phase 1
 
 - React + TypeScript + Vite + Tailwind CSS frontend
 - Node.js + Express + TypeScript REST API under `/api/v1/`
@@ -14,7 +12,13 @@ Phase 0 foundation for an intelligent, multi-tenant supply-chain management and 
 - English, French, and Arabic locale switching with Arabic RTL support
 - DZD, date, number, and Algerian wilaya utilities
 - Deterministic synthetic demo seed data
-- API integration tests for auth, RBAC, and cross-organization isolation
+- Products, categories, suppliers, customers, and warehouses
+- Inventory levels, initial stock, adjustments, and movement history
+- Purchase orders with partial/full receiving and atomic inventory updates
+- Sales orders with stock-checked atomic completion
+- Warehouse transfers with atomic transfer-in/transfer-out movements
+- Organization-scoped APIs and frontend screens for all Phase 1 workflows
+- API integration tests for auth, RBAC, tenant isolation, and transactional workflows
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the implemented boundaries and decisions. [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) remains the product source of truth.
 
@@ -31,13 +35,13 @@ npm run db:seed
 npm run dev
 ```
 
-The app serves the frontend and API on port 5000. Run `npm test` for the Phase 0 API test suite and `npm run build` for the frontend/type-check build.
+The app serves the frontend and API on port 5000. Run `npm test` for the API test suite and `npm run build` for the frontend/type-check build.
 
 Seeded demo users share the development password `DemoPass123!`; their emails are documented by the seed output and are intended for local/demo use only.
 
 ## Deferred phases
 
-Inventory transactions, purchasing and sales workflows, forecasting, advanced analytics, replenishment recommendations, Supply Quests, audit history, and the final BI dashboard belong to later phases.
+Forecasting, advanced analytics, replenishment recommendations, supplier scoring, audit history, and Supply Quests belong to later phases.
 
 ## License
 
