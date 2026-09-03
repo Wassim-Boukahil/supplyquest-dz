@@ -6,6 +6,7 @@ import { LoadingState } from "./components/ui";
 import { EntityDetailPage, EntityListPage } from "./pages/EntityPages";
 import { InventoryPage, MovementsPage, TransfersPage } from "./pages/InventoryPages";
 import { OrderDetailPage, OrdersPage } from "./pages/OrderPages";
+import { IntelligenceAlertsPage, IntelligenceDashboardPage, IntelligenceInventoryPage, IntelligenceProductPage, IntelligenceRecommendationsPage, IntelligenceSuppliersPage, IntelligenceWarehousesPage } from "./pages/IntelligencePages";
 
 export function App() {
   const { user, loading } = useAuth();
@@ -23,6 +24,13 @@ export function App() {
     <Route path="/purchases/:id" element={user ? <OrderDetailPage kind="purchases" /> : <Navigate to="/login" replace />} />
     <Route path="/sales" element={user ? <OrdersPage kind="sales" /> : <Navigate to="/login" replace />} />
     <Route path="/sales/:id" element={user ? <OrderDetailPage kind="sales" /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence" element={user ? <IntelligenceDashboardPage /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence/inventory" element={user ? <IntelligenceInventoryPage /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence/products/:id" element={user ? <IntelligenceProductPage /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence/suppliers" element={user ? <IntelligenceSuppliersPage /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence/warehouses" element={user ? <IntelligenceWarehousesPage /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence/recommendations" element={user ? <IntelligenceRecommendationsPage /> : <Navigate to="/login" replace />} />
+    <Route path="/intelligence/alerts" element={user ? <IntelligenceAlertsPage /> : <Navigate to="/login" replace />} />
     <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
   </Routes>;
 }

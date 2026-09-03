@@ -19,6 +19,8 @@ const productNames = ["Tomate", "Olive", "Semoule", "Lentilles", "Eau", "Lait", 
 async function seedOrganization(slug: string, name: string, index: number) {
   const previous = await prisma.organization.findUnique({ where: { slug }, select: { id: true } });
   if (previous) {
+    await prisma.inventoryAlert.deleteMany({ where: { organizationId: previous.id } });
+    await prisma.replenishmentRecommendation.deleteMany({ where: { organizationId: previous.id } });
     // Explicit child cleanup keeps restrictive product/order foreign keys safe
     // when reseeding a tenant.
     await prisma.inventoryTransaction.deleteMany({ where: { organizationId: previous.id } });
@@ -125,11 +127,24 @@ async function seedOrganization(slug: string, name: string, index: number) {
     }));
   }
 
+  const now = Date.now();
+  const saleRates = [7, 3, 0, 0.2, 1, 8, 0, 0, 2, 1];
   for (const [productIndex, product] of products.entries()) {
     for (const [warehouseIndex, warehouse] of warehouses.entries()) {
-      const quantity = 80 + productIndex * 4 + warehouseIndex * 15;
+      const rate = saleRates[productIndex % saleRates.length];
+      const priorUnits = Math.round(rate * 32);
+      const baselineUnits = Math.round(rate * 14);
+      const recentMultiplier = productIndex === 0 ? 1.8 : productIndex === 5 ? 0.55 : 1;
+      const recentUnits = Math.round(rate * recentMultiplier * 14);
+      const historicalSold = priorUnits + baselineUnits + recentUnits;
+      const quantity = productIndex === 0 ? 18 + warehouseIndex * 4 : productIndex === 1 ? 520 + warehouseIndex * 20 : productIndex === 5 ? 22 + warehouseIndex * 8 : 80 + productIndex * 4 + warehouseIndex * 15;
+      const openingQuantity = quantity + historicalSold;
       await prisma.inventoryLevel.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, onHandQuantity: quantity } });
-      await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, quantity, type: "INITIAL_STOCK", reason: "Seeded opening balance", actorId } });
+      await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, quantity: openingQuantity, type: "INITIAL_STOCK", reason: "Seeded opening balance", actorId, createdAt: new Date(now - 100 * 86400000) } });
+      for (const [units, offset, reason] of [[priorUnits, 32, "Seeded historical demand"], [baselineUnits, 18, "Seeded baseline demand"], [recentUnits, 4, "Seeded recent demand"]] as const) {
+        if (!units) continue;
+        await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, quantity: units, type: "SALE", referenceType: "SALES_ORDER", reason, actorId, createdAt: new Date(now - offset * 86400000) } });
+      }
     }
   }
 
@@ -137,6 +152,7 @@ async function seedOrganization(slug: string, name: string, index: number) {
     data: {
       organizationId: organization.id, supplierId: suppliers[0].id, warehouseId: warehouses[0].id,
       orderNumber: `PO-${index + 1}-PARTIAL`, status: "PARTIALLY_RECEIVED",
+      orderDate: new Date(now - 18 * 86400000),
       expectedDeliveryDate: new Date(Date.now() + 5 * 86400000), notes: "Partial delivery awaiting balance.",
       items: { create: [
         { productId: products[0].id, orderedQuantity: 120, receivedQuantity: 70, purchaseUnitPrice: products[0].purchasePrice },
@@ -146,13 +162,14 @@ async function seedOrganization(slug: string, name: string, index: number) {
   });
   for (const [product, quantity] of [[products[0], 70], [products[1], 30]] as const) {
     await prisma.inventoryLevel.update({ where: { organizationId_productId_warehouseId: { organizationId: organization.id, productId: product.id, warehouseId: warehouses[0].id } }, data: { onHandQuantity: { increment: quantity } } });
-    await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouses[0].id, quantity, type: "PURCHASE_RECEIPT", referenceType: "PURCHASE_ORDER", referenceId: partialPurchase.id, reason: "Seeded partial receipt", actorId } });
+    await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouses[0].id, quantity, type: "PURCHASE_RECEIPT", referenceType: "PURCHASE_ORDER", referenceId: partialPurchase.id, reason: "Seeded partial receipt", actorId, createdAt: new Date(now - 4 * 86400000) } });
   }
 
   const fullPurchase = await prisma.purchaseOrder.create({
     data: {
       organizationId: organization.id, supplierId: suppliers[1].id, warehouseId: warehouses[1 % warehouses.length].id,
       orderNumber: `PO-${index + 1}-RECEIVED`, status: "RECEIVED",
+      orderDate: new Date(now - 50 * 86400000),
       expectedDeliveryDate: new Date(Date.now() - 2 * 86400000), notes: "Fully received demonstration order.",
       items: { create: [
         { productId: products[2].id, orderedQuantity: 100, receivedQuantity: 100, purchaseUnitPrice: products[2].purchasePrice },
@@ -162,7 +179,7 @@ async function seedOrganization(slug: string, name: string, index: number) {
   });
   for (const [product, quantity] of [[products[2], 100], [products[3], 60]] as const) {
     await prisma.inventoryLevel.update({ where: { organizationId_productId_warehouseId: { organizationId: organization.id, productId: product.id, warehouseId: warehouses[1 % warehouses.length].id } }, data: { onHandQuantity: { increment: quantity } } });
-    await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouses[1 % warehouses.length].id, quantity, type: "PURCHASE_RECEIPT", referenceType: "PURCHASE_ORDER", referenceId: fullPurchase.id, reason: "Seeded full receipt", actorId } });
+    await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouses[1 % warehouses.length].id, quantity, type: "PURCHASE_RECEIPT", referenceType: "PURCHASE_ORDER", referenceId: fullPurchase.id, reason: "Seeded full receipt", actorId, createdAt: new Date(now - 1 * 86400000) } });
   }
 
   await prisma.salesOrder.create({

@@ -33,6 +33,6 @@ export function ErrorState({ message }: { message: string }) {
   return <div className="state-message error-message">{message}</div>;
 }
 
-export function EmptyState({ message }: { message: string }) {
+export function EmptyState({ message = "No data available yet." }: { message?: string }) {
   return <div className="state-message">{message}</div>;
 }

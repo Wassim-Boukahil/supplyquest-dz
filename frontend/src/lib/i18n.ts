@@ -15,6 +15,8 @@ const translations: Record<Locale, Record<string, string>> = {
     createOrganization: "Organization name", slug: "Workspace slug", signInPrompt: "Sign in to your workspace", registerPrompt: "Create your demo workspace",
     needAccount: "Need an account?", alreadyAccount: "Already have an account?", submit: "Continue", showPassword: "Use at least 8 characters.",
     invalidLogin: "Unable to sign in with those details.",
+    intelligence: "Intelligence", recommendations: "Recommendations", alerts: "Alerts", inventoryHealth: "Inventory health",
+    supplierPerformance: "Supplier performance", warehouseComparison: "Warehouse comparison", operationalSignals: "Operational signals",
   },
   fr: {
     appName: "SupplyQuest DZ", foundation: "Fondation", overview: "Vue d’ensemble", settings: "Paramètres",
@@ -27,6 +29,8 @@ const translations: Record<Locale, Record<string, string>> = {
     createOrganization: "Nom de l’organisation", slug: "Identifiant de l’espace", signInPrompt: "Accédez à votre espace", registerPrompt: "Créez votre espace démo",
     needAccount: "Pas encore de compte ?", alreadyAccount: "Vous avez déjà un compte ?", submit: "Continuer", showPassword: "8 caractères minimum.",
     invalidLogin: "Impossible de vous connecter avec ces informations.",
+    intelligence: "Intelligence", recommendations: "Recommandations", alerts: "Alertes", inventoryHealth: "Santé des stocks",
+    supplierPerformance: "Performance fournisseurs", warehouseComparison: "Comparaison des entrepôts", operationalSignals: "Signaux opérationnels",
   },
   ar: {
     appName: "SupplyQuest DZ", foundation: "الأساس", overview: "نظرة عامة", settings: "الإعدادات",
@@ -39,6 +43,8 @@ const translations: Record<Locale, Record<string, string>> = {
     createOrganization: "اسم المؤسسة", slug: "معرف مساحة العمل", signInPrompt: "سجل الدخول إلى مساحتك", registerPrompt: "أنشئ مساحة تجريبية",
     needAccount: "لا تملك حساباً؟", alreadyAccount: "لديك حساب بالفعل؟", submit: "متابعة", showPassword: "8 أحرف على الأقل.",
     invalidLogin: "تعذر تسجيل الدخول بهذه المعلومات.",
+    intelligence: "التحليلات", recommendations: "التوصيات", alerts: "التنبيهات", inventoryHealth: "صحة المخزون",
+    supplierPerformance: "أداء الموردين", warehouseComparison: "مقارنة المخازن", operationalSignals: "الإشارات التشغيلية",
   },
 };
 

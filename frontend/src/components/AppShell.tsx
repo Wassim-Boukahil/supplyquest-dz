@@ -17,6 +17,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     [ClipboardList, "Inventory", "/inventory"], [ArrowRightLeft, "Transfers", "/inventory/transfers"],
     [ShoppingCart, "Purchases", "/purchases"], [ShoppingCart, "Sales", "/sales"],
   ] as const;
+  const intelligenceItems = [
+    [BarChart3, t("intelligence"), "/intelligence"], [ShieldIcon, t("recommendations"), "/intelligence/recommendations"], [AlertIcon, t("alerts"), "/intelligence/alerts"],
+  ] as const;
   return <div className="app-shell">
     <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
       <div className="brand"><span className="brand-mark">SQ</span><span>{t("appName")}</span></div>
@@ -28,6 +31,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         {catalogItems.map(([Icon, label, path]) => <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to={path} key={path} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavLink>)}
         <p className="nav-label section-gap">Operations</p>
         {operationsItems.map(([Icon, label, path]) => <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to={path} key={path} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavLink>)}
+         <p className="nav-label section-gap">Intelligence</p>
+         {intelligenceItems.map(([Icon, label, path]) => <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to={path} key={path} onClick={() => setMobileOpen(false)}><Icon size={18} />{label}</NavLink>)}
         <NavLink className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} to="/settings"><Settings size={18} />{t("settings")}</NavLink>
       </nav>
       <div className="sidebar-help"><CircleHelp size={17} /><div><strong>Need a hand?</strong><span>Read the foundation guide</span></div></div>
@@ -40,4 +45,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="page-content">{children}</div>
     </main>
   </div>;
+}
+
+function ShieldIcon(props: { size?: number }) {
+  return <BarChart3 {...props} />;
+}
+
+function AlertIcon(props: { size?: number }) {
+  return <CircleHelp {...props} />;
 }

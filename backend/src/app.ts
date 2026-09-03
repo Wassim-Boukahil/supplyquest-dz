@@ -5,6 +5,7 @@ import morgan from "morgan";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { foundationRouter } from "./modules/foundation/foundation.routes.js";
 import { phase1Router } from "./modules/phase1/phase1.routes.js";
+import { intelligenceRouter } from "./modules/intelligence/intelligence.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errors.js";
 import { sendSuccess } from "./utils/api.js";
 
@@ -22,6 +23,7 @@ export function createApp() {
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/foundation", foundationRouter);
   app.use("/api/v1", phase1Router);
+  app.use("/api/v1/intelligence", intelligenceRouter);
 
   app.use((req, res, next) => {
     if (req.path.startsWith("/api/")) {

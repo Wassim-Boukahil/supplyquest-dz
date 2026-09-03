@@ -1,6 +1,6 @@
 # SupplyQuest DZ
 
-Phase 1 core supply-chain platform for Algerian SMEs, with a multi-tenant PostgreSQL backend and a React operations workspace.
+Phase 2 inventory-intelligence platform for Algerian SMEs, with a multi-tenant PostgreSQL backend and a React operations workspace.
 
 ## Implemented foundation and Phase 1
 
@@ -19,6 +19,9 @@ Phase 1 core supply-chain platform for Algerian SMEs, with a multi-tenant Postgr
 - Warehouse transfers with atomic transfer-in/transfer-out movements
 - Organization-scoped APIs and frontend screens for all Phase 1 workflows
 - API integration tests for auth, RBAC, tenant isolation, and transactional workflows
+- Explainable inventory health, demand, coverage, aging, turnover, slow-moving, overstock, and ABC analytics
+- Stockout risk, reorder points, replenishment recommendations, supplier performance, warehouse comparison, and deduplicated operational alerts
+- Intelligence dashboard and detail screens at `/intelligence`, `/intelligence/inventory`, `/intelligence/suppliers`, `/intelligence/warehouses`, `/intelligence/recommendations`, and `/intelligence/alerts`
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the implemented boundaries and decisions. [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) remains the product source of truth.
 
@@ -39,9 +42,15 @@ The app serves the frontend and API on port 5000. Run `npm test` for the API tes
 
 Seeded demo users share the development password `DemoPass123!`; their emails are documented by the seed output and are intended for local/demo use only.
 
+## Phase 2 methodology
+
+Analytics are calculated from PostgreSQL inventory levels and immutable transactions. Inventory value uses on-hand quantity × purchase price. Demand uses completed SALE transactions, with a trailing 14-day comparison for trend. Days of inventory is available quantity ÷ average daily demand. Reorder point is average daily demand × supplier lead time + safety stock, and recommendations add a 14-day review period.
+
+All signals are business-rule/statistical indicators, not machine learning. The API marks insufficient history explicitly. Recommendation and alert status is persisted, while derived metrics stay dynamic. ABC uses sales-revenue contribution with 80%/95% cumulative thresholds. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full methodology and thresholds.
+
 ## Deferred phases
 
-Forecasting, advanced analytics, replenishment recommendations, supplier scoring, audit history, and Supply Quests belong to later phases.
+Python forecasting, machine learning, advanced time-series models, forecast evaluation, advanced executive BI, Supply Quest RPG presentation, and automated external integrations are intentionally deferred to later phases.
 
 ## License
 

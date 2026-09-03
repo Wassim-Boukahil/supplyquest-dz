@@ -1,8 +1,8 @@
-# SupplyQuest DZ — Phase 0 Architecture
+# SupplyQuest DZ — Architecture
 
 ## Scope
 
-This document describes the foundation currently implemented for SupplyQuest DZ. `docs/PRODUCT_SPEC.md` remains the canonical product source of truth. Phase 1+ operational workflows are intentionally not implemented yet.
+This document describes the modular monolith currently implemented for SupplyQuest DZ. `docs/PRODUCT_SPEC.md` remains the canonical product source of truth.
 
 ## Technology
 
@@ -24,14 +24,15 @@ backend/src/
   middleware/                    Authentication, RBAC, validation, errors
   modules/auth/                  Registration, login, logout, current-user
   modules/foundation/            Tenant-scoped foundation demonstration endpoints
+  modules/intelligence/          Explainable inventory analytics and operational signals
   db/                            Prisma client
 frontend/src/
   components/                    App shell and reusable UI primitives
   context/                       Authentication state
   lib/                           API client, locale, formatting utilities
-  pages/                         Login, registration, foundation dashboard
+  pages/                         Login, registration, operations and intelligence screens
 prisma/
-  schema.prisma                  Phase 0 relational schema
+  schema.prisma                  Relational schema and tenant-safe workflow state
   seed.ts                        Repeatable synthetic Algerian-oriented demo data
 tests/                           API integration tests
 ```
@@ -70,7 +71,7 @@ flowchart LR
 
 ## Database strategy
 
-V1 uses one managed PostgreSQL database and Prisma migrations. The Phase 0 schema includes organizations, users, roles, user_roles, warehouses, product_categories, products, suppliers, and customers. All IDs are UUIDs, timestamps use `created_at`/`updated_at`, and product prices use PostgreSQL `NUMERIC` through Prisma Decimal. Transactional tables for purchasing, sales, inventory movements, and audit logs are deliberately deferred to later phases.
+V1 uses one managed PostgreSQL database and Prisma migrations. The schema includes the foundation catalog plus inventory, purchasing, sales, transfers, replenishment recommendations, and inventory alerts. All IDs are UUIDs, timestamps use `created_at`/`updated_at`, and product prices and persisted intelligence snapshots use PostgreSQL `NUMERIC` through Prisma Decimal. Derived health metrics remain dynamic; recommendation and alert status are persisted because users act on and resolve those records.
 
 ## API conventions
 
@@ -92,6 +93,30 @@ Implemented endpoints:
 ## Localization and Algerian context
 
 The frontend has an English, French, and Arabic translation structure. Changing to Arabic updates `lang` and `dir="rtl"` on the document. DZD, date, and number formatting utilities plus a structured starter list of wilayas are ready for later feature modules. Only the foundation shell is translated in Phase 0.
+
+## Phase 2 intelligence
+
+The intelligence module reads organization-scoped inventory levels, immutable inventory transactions, purchase orders, receiving transactions, and completed sales transactions. Controllers only select the authenticated organization and delegate to `intelligence.service.ts`; no analytics values are hard-coded in React.
+
+### Metric methodology
+
+- **Inventory value:** `on_hand_quantity × product.purchase_price`. FIFO, LIFO, and weighted-average valuation are intentionally deferred.
+- **Demand:** completed `SALE` inventory transactions in the selected period. Average daily demand is total units divided by period days; recent demand is the trailing 14 days compared with the preceding 14-day baseline. Volatility is the standard deviation of daily units.
+- **Days of inventory:** `available_quantity ÷ average_daily_demand`, where available is on-hand less reserved. Zero demand is represented as null rather than infinity.
+- **Health thresholds:** `CRITICAL` is zero-to-seven days, `LOW` is eight-to-thirty, `HEALTHY` is thirty-one-to-ninety, and `EXCESS` is over ninety. Products without enough history are marked `INSUFFICIENT`.
+- **Stockout risk:** a 0–100 rule score adds exposure for low coverage, coverage shorter than supplier lead time, stock at/below safety stock, and a positive recent demand trend. Levels are LOW (0–24), MEDIUM (25–49), HIGH (50–74), and CRITICAL (75–100). It is a business-rule signal, not machine learning.
+- **Overstock and slow movement:** overstock compares coverage to a 30-day target and scales excess coverage to 0–100. Slow movement uses daily demand: FAST is at least 5 units/day, NORMAL is 0.25–5, SLOW is below 0.25, and DEAD is no sales in a sufficient analysis window.
+- **Aging:** the existing transaction model has no lots or batches. Aging is a weighted approximation using inbound transaction quantities and age, shown in 0–30, 31–60, 61–90, and 90+ day buckets.
+- **Turnover:** sales consumption divided by a current-inventory proxy (`current on hand + half of period sales`). This is an operational ratio, not a financial accounting valuation.
+- **ABC:** products are sorted by revenue (`sold units × selling price`) in the selected period. A is the first 80% of cumulative contribution, B the next 15%, and C the remaining 5%.
+- **Supplier score:** on-time rate (60%), delay penalty (25%), and fill rate (15%), using purchase-order and receipt history. Suppliers with no completed receiving history remain unscored.
+- **Reorder point:** `average daily demand × supplier lead time + safety stock`. A recommendation target adds 14 days of review-period demand; recommended quantity is `max(0, target - available)`. Recommendations include all inputs and explanation.
+
+Demand-derived values explicitly carry an insufficient-data state when the selected period or transaction history cannot support a reliable signal. Recommendations are not created without sufficient demand and lead-time data.
+
+`ReplenishmentRecommendation` and `InventoryAlert` are the only Phase 2 derived entities. They are organization-scoped, indexed by tenant/status/entity, and use stable product/warehouse or condition fingerprints to prevent duplicate records when a condition is unchanged. Status changes are separate authenticated mutations.
+
+Phase 2 endpoints are under `/api/v1/intelligence`: `overview`, `inventory-health`, `demand`, `stockout-risk`, `overstock`, `slow-moving`, `abc`, `suppliers`, `warehouses`, `reorder-points`, `recommendations`, `alerts`, and `products/:id`. Collection endpoints use server-side filters/pagination. No cache, queue, Redis, Python service, ML model, or advanced forecast is introduced.
 
 ## Future Python analytics
 

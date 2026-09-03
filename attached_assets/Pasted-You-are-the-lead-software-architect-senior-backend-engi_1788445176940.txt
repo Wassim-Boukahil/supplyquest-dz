@@ -1,0 +1,1139 @@
+You are the lead software architect, senior backend engineer, and data/analytics engineer continuing development of the existing SupplyQuest DZ repository.
+
+==================================================
+PHASE 2 — INVENTORY INTELLIGENCE
+==================================================
+
+IMPORTANT:
+
+Phase 0 and Phase 1 are already implemented, tested, committed, and pushed to GitHub.
+
+The current application already contains:
+
+- React + Vite + TypeScript frontend
+- Node.js + Express + TypeScript backend
+- PostgreSQL + Prisma
+- JWT authentication
+- RBAC
+- multi-tenancy
+- tenant-safe business relationships
+- products
+- categories
+- suppliers
+- customers
+- warehouses
+- inventory levels
+- immutable inventory transactions
+- stock adjustments
+- purchase orders
+- purchase receiving
+- sales orders
+- sales completion
+- warehouse transfers
+- working frontend screens
+- seed data
+- automated tests
+
+DO NOT rebuild Phase 0 or Phase 1.
+
+DO NOT replace the current architecture.
+
+DO NOT reset the database.
+
+DO NOT upgrade Prisma to another major version.
+
+DO NOT introduce unnecessary infrastructure.
+
+Do not create a new application.
+
+The GitHub repository remains the canonical source of truth.
+
+==================================================
+PHASE 2 OBJECTIVE
+==================================================
+
+Turn the operational supply-chain application into an intelligent inventory-management system.
+
+The goal is to answer:
+
+1. Which products are healthy?
+2. Which products are at risk?
+3. Which products are overstocked?
+4. Which products are moving too slowly?
+5. Which products are consuming the most inventory value?
+6. Which products should be reordered?
+7. How much should be reordered?
+8. Which suppliers are operationally risky?
+9. Which warehouses have abnormal inventory patterns?
+10. Why is the system recommending a particular action?
+
+All analytics must be based on actual transactional data stored in PostgreSQL.
+
+Do NOT hard-code analytics values into the frontend.
+
+Do NOT create fake AI output.
+
+Prioritize explainability.
+
+==================================================
+STRICT PHASE BOUNDARY
+==================================================
+
+Implement inventory intelligence only.
+
+DO NOT implement the full Phase 3 data-science/forecasting service yet.
+
+Specifically defer:
+
+- Python forecasting service
+- machine learning models
+- advanced time-series forecasting
+- model training pipelines
+- forecast evaluation framework
+- advanced predictive analytics
+- automated external integrations
+
+Phase 2 may implement statistical/business-rule intelligence using the existing Node/PostgreSQL architecture.
+
+Phase 3 will introduce the Python analytics layer and forecasting.
+
+==================================================
+ARCHITECTURE
+==================================================
+
+Preserve the existing modular monolith.
+
+Extend:
+
+backend/src/modules/
+
+Add a dedicated intelligence/analytics module as appropriate, for example:
+
+backend/src/modules/intelligence/
+
+Keep the implementation modular.
+
+Suggested separation:
+
+inventory intelligence calculations
+risk calculations
+ABC analysis
+supplier performance
+recommendations
+alerts
+
+Keep business logic outside controllers.
+
+Reuse existing:
+
+authenticate
+authorize
+validateBody
+AppError
+error handling
+API utilities
+Prisma client
+configuration
+
+Do not duplicate infrastructure.
+
+==================================================
+SOURCE OF TRUTH
+==================================================
+
+Read:
+
+docs/PRODUCT_SPEC.md
+docs/ARCHITECTURE.md
+
+Also inspect the existing:
+
+- Prisma schema
+- inventory transaction model
+- purchase order models
+- sales order models
+- supplier model
+- warehouse model
+- product model
+- existing Phase 1 services
+- frontend API utilities
+
+Build directly on the existing implementation.
+
+Do not redesign completed Phase 1 workflows.
+
+==================================================
+1. INVENTORY HEALTH METRICS
+==================================================
+
+Implement backend calculations for each product and warehouse where appropriate.
+
+Calculate:
+
+- on-hand quantity
+- available quantity
+- inventory value
+- average daily demand
+- days of inventory remaining
+- inventory turnover
+- stock coverage
+- stock aging
+- slow-moving status
+- excess-stock status
+
+Use historical inventory/sales transaction data.
+
+Where data is insufficient, return a meaningful "insufficient data" state rather than inventing a value.
+
+==================================================
+2. INVENTORY VALUE
+==================================================
+
+For Phase 2, continue using the existing simple valuation approach:
+
+inventory value =
+on_hand_quantity × purchase_price
+
+Document this methodology.
+
+Do not implement FIFO/LIFO/weighted-average valuation yet.
+
+==================================================
+3. DEMAND ANALYSIS
+==================================================
+
+Create a basic explainable historical-demand engine.
+
+For each product:
+
+Calculate daily/weekly demand from completed sales transactions.
+
+Provide:
+
+- total units sold
+- average daily demand
+- average weekly demand
+- recent demand
+- demand trend
+- demand volatility
+
+Compare:
+
+recent demand vs historical baseline
+
+Example:
+
+Average daily demand: 52
+Recent daily demand: 61
+Trend: +17%
+
+Do not call this machine learning.
+
+==================================================
+4. DAYS OF INVENTORY
+==================================================
+
+Calculate:
+
+days_of_inventory =
+available_quantity / average_daily_demand
+
+Handle zero/insufficient demand safely.
+
+Classify:
+
+CRITICAL
+LOW
+HEALTHY
+EXCESS
+
+Use configurable thresholds where practical.
+
+Document the thresholds.
+
+==================================================
+5. STOCKOUT RISK
+==================================================
+
+Create an explainable stockout-risk calculation.
+
+The initial version should use business rules rather than machine learning.
+
+Possible factors:
+
+- current available quantity
+- average daily demand
+- recent demand trend
+- supplier lead time
+- safety stock
+- days of inventory
+
+Produce:
+
+risk_score: 0–100
+
+risk_level:
+
+LOW
+MEDIUM
+HIGH
+CRITICAL
+
+Provide an explanation.
+
+Example:
+
+"High risk because available stock covers approximately 2.3 days of demand while supplier lead time is 7 days."
+
+Do not pretend this is a predictive ML model.
+
+==================================================
+6. OVERSTOCK RISK
+==================================================
+
+Identify products with excessive inventory.
+
+Use:
+
+- days of inventory
+- demand rate
+- inventory value
+- configurable thresholds
+
+Return:
+
+overstock_score
+overstock_level
+explanation
+
+Example:
+
+"Excess inventory: 94 days of coverage versus a target of 30 days."
+
+==================================================
+7. SLOW-MOVING INVENTORY
+==================================================
+
+Identify products with unusually low movement.
+
+Use historical sales activity.
+
+Potential classification:
+
+FAST
+NORMAL
+SLOW
+DEAD
+
+Make thresholds configurable/documented.
+
+Products with no sales over the relevant analysis window should be highlighted as potential dead stock, while avoiding false conclusions when insufficient history exists.
+
+==================================================
+8. INVENTORY AGING
+==================================================
+
+Use inventory transaction history to estimate stock aging.
+
+Create aging buckets such as:
+
+0–30 days
+31–60 days
+61–90 days
+90+ days
+
+Where exact lot-level aging is impossible from the existing transaction model, use a clearly documented approximation based on stock inflows and outflows.
+
+Do not pretend to have lot/batch traceability if the schema does not support it.
+
+==================================================
+9. INVENTORY TURNOVER
+==================================================
+
+Implement an explainable inventory-turnover metric.
+
+Use sales consumption and average inventory value/quantity over the selected time period.
+
+Support a selectable analysis period.
+
+Display:
+
+turnover ratio
+analysis period
+supporting metrics
+
+Explain how the value was calculated.
+
+==================================================
+10. ABC ANALYSIS
+==================================================
+
+Implement ABC product classification based on contribution to a chosen business metric.
+
+Default to sales revenue contribution.
+
+For a selected period:
+
+1. calculate product revenue
+2. sort products by descending contribution
+3. calculate cumulative contribution
+4. classify products
+
+Use configurable thresholds, for example:
+
+A = first 80%
+B = next 15%
+C = final 5%
+
+Document the methodology.
+
+Do not hard-code the classification into the frontend.
+
+==================================================
+11. SUPPLIER PERFORMANCE
+==================================================
+
+Enhance supplier analytics.
+
+Using purchase-order and receiving history, calculate:
+
+- average lead time
+- on-time delivery rate
+- late delivery rate
+- average delay
+- total purchase volume
+- number of purchase orders
+- partial delivery rate
+
+Create a supplier performance score.
+
+Suggested scale:
+
+0–100
+
+Make the score explainable.
+
+Example:
+
+"Supplier score: 71 because on-time delivery is 78%, average delay is 2.4 days, and 3 of 14 orders were significantly late."
+
+Do not implement advanced supplier prediction yet.
+
+==================================================
+12. WAREHOUSE INTELLIGENCE
+==================================================
+
+Create warehouse-level metrics:
+
+- inventory value
+- number of active products
+- stockout-risk products
+- excess-stock products
+- total on-hand units
+- average inventory health
+
+Allow comparison across warehouses.
+
+Do not implement optimization/rebalancing automation yet.
+
+==================================================
+13. REORDER POINT
+==================================================
+
+Implement a baseline reorder-point calculation.
+
+Use:
+
+expected demand during lead time
++
+safety stock
+
+Expected demand during lead time may be calculated from:
+
+average daily demand × supplier lead time
+
+Then:
+
+reorder_point =
+expected_lead_time_demand + safety_stock
+
+Display the inputs.
+
+Example:
+
+Average daily demand: 52
+Lead time: 6 days
+Lead-time demand: 312
+Safety stock: 97
+Reorder point: 409
+
+==================================================
+14. REPLENISHMENT RECOMMENDATION
+==================================================
+
+Implement an explainable baseline replenishment engine.
+
+Generate a recommendation when:
+
+available_quantity <= reorder_point
+
+Calculate a target level using a documented rule.
+
+Possible baseline:
+
+target_stock =
+lead_time_demand
++
+safety_stock
++
+defined review-period demand
+
+Then:
+
+recommended_order_quantity =
+max(0, target_stock - available_quantity)
+
+Do not claim the result is globally optimal.
+
+Display:
+
+recommended quantity
+reorder point
+target stock
+current available
+average demand
+lead time
+safety stock
+reason
+
+==================================================
+15. RECOMMENDATION PRIORITY
+==================================================
+
+Each recommendation should have:
+
+priority
+risk
+estimated stockout horizon where calculable
+estimated quantity
+estimated inventory impact
+reason
+
+Priorities:
+
+CRITICAL
+HIGH
+MEDIUM
+LOW
+
+Recommendations must be actionable.
+
+==================================================
+16. SUPPLY ALERTS
+==================================================
+
+Create an alert engine for:
+
+- critical stock
+- predicted/estimated stockout
+- excess inventory
+- slow-moving inventory
+- demand spike
+- demand decline
+- supplier delay
+- warehouse imbalance
+
+Each alert should include:
+
+- type
+- severity
+- title
+- message
+- related entity
+- created_at
+- resolved status
+
+Prevent the system from generating unlimited duplicate alerts for the same unchanged condition.
+
+Use sensible deduplication.
+
+==================================================
+17. DEMAND SPIKE / DECLINE
+==================================================
+
+Implement simple statistical detection.
+
+Compare recent demand to an historical baseline.
+
+For example:
+
+recent average
+vs
+historical average
+
+Flag meaningful deviations.
+
+Use an explainable threshold.
+
+Example:
+
+"Demand spike detected: recent 14-day demand is 28% above the prior baseline."
+
+Do not use ML.
+
+==================================================
+18. ANALYTICS API
+==================================================
+
+Create clean REST APIs under:
+
+/api/v1/
+
+Suggested endpoints:
+
+GET /api/v1/intelligence/overview
+
+GET /api/v1/intelligence/inventory-health
+
+GET /api/v1/intelligence/stockout-risk
+
+GET /api/v1/intelligence/overstock
+
+GET /api/v1/intelligence/slow-moving
+
+GET /api/v1/intelligence/abc
+
+GET /api/v1/intelligence/suppliers
+
+GET /api/v1/intelligence/warehouses
+
+GET /api/v1/intelligence/reorder-points
+
+GET /api/v1/intelligence/recommendations
+
+GET /api/v1/intelligence/alerts
+
+GET /api/v1/intelligence/products/:id
+
+All endpoints must:
+
+- require authentication
+- respect RBAC
+- enforce organization isolation
+- support appropriate filtering
+- support pagination for large result sets
+
+==================================================
+19. PRODUCT INTELLIGENCE DETAIL
+==================================================
+
+Create:
+
+GET /api/v1/intelligence/products/:id
+
+Return an intelligence profile containing:
+
+- current inventory
+- demand metrics
+- demand trend
+- days of inventory
+- turnover
+- stockout risk
+- overstock risk
+- ABC classification
+- reorder point
+- recommended order quantity
+- explanation
+
+If the product lacks sufficient historical data, explicitly indicate that.
+
+==================================================
+20. INVENTORY INTELLIGENCE UI
+==================================================
+
+Extend the existing React application.
+
+Do not redesign AppShell.
+
+Add new pages:
+
+/intelligence
+/intelligence/inventory
+/intelligence/products/:id
+/intelligence/suppliers
+/intelligence/warehouses
+/intelligence/recommendations
+/intelligence/alerts
+
+Use the existing API client and UI components.
+
+Create a professional BI/operations interface.
+
+==================================================
+21. EXECUTIVE INTELLIGENCE DASHBOARD
+==================================================
+
+Create a new intelligence dashboard containing:
+
+KPI cards:
+
+Inventory Value
+Stockout Risk
+Excess Inventory
+Slow-Moving Products
+Healthy Inventory %
+Open Recommendations
+
+Charts/tables:
+
+Inventory health distribution
+Stockout-risk products
+Excess inventory
+ABC classification
+Supplier performance
+Warehouse comparison
+Demand trend
+Top inventory-value products
+
+Do not yet build the final executive BI dashboard promised for Phase 4.
+
+This is the operational intelligence dashboard.
+
+==================================================
+22. PRODUCT INTELLIGENCE PAGE
+==================================================
+
+Create a detailed product analysis screen.
+
+Show:
+
+Product
+SKU
+Warehouse inventory
+Available quantity
+Average daily demand
+Days of inventory
+Turnover
+Stockout risk
+Overstock risk
+ABC classification
+Reorder point
+Recommended quantity
+
+Add a clear explanation panel:
+
+WHY THIS PRODUCT IS AT RISK
+
+or
+
+WHY THIS REORDER IS RECOMMENDED
+
+==================================================
+23. RECOMMENDATIONS PAGE
+==================================================
+
+Create a table/card view of replenishment recommendations.
+
+Columns:
+
+Priority
+Product
+Warehouse
+Current Stock
+Days Remaining
+Reorder Point
+Recommended Quantity
+Reason
+Status
+
+Statuses:
+
+OPEN
+IN_PROGRESS
+COMPLETED
+DISMISSED
+
+Implement basic status updates.
+
+Do not yet implement the RPG-inspired Supply Quest presentation.
+
+That belongs later.
+
+==================================================
+24. ALERTS PAGE
+==================================================
+
+Show:
+
+severity
+type
+product/warehouse/supplier
+message
+created date
+status
+
+Allow resolving alerts.
+
+Store resolution state.
+
+==================================================
+25. SUPPLIER INTELLIGENCE UI
+==================================================
+
+Enhance supplier detail pages with:
+
+- supplier score
+- average lead time
+- on-time rate
+- delay statistics
+- purchase volume
+- order history summary
+
+Use real purchase/receiving data.
+
+==================================================
+26. WAREHOUSE INTELLIGENCE UI
+==================================================
+
+Show warehouse comparison:
+
+Warehouse
+Inventory Value
+Active SKUs
+Risk Products
+Excess Products
+Health Score
+
+Allow clicking through to relevant inventory.
+
+==================================================
+27. FILTERING
+==================================================
+
+Analytics pages must support appropriate filters:
+
+date range
+warehouse
+category
+product
+supplier
+
+Where relevant, allow sorting.
+
+Do not perform all filtering exclusively on the frontend.
+
+Use API-side filtering for large collections.
+
+==================================================
+28. CACHING / COMPUTATION
+==================================================
+
+Do not introduce Redis or another cache in Phase 2.
+
+For V1:
+
+Prefer well-indexed PostgreSQL queries and service-level calculations.
+
+If repeated expensive calculations are discovered, document the bottleneck rather than adding unnecessary infrastructure.
+
+==================================================
+29. DATABASE
+==================================================
+
+Only add new tables when persistence is genuinely required.
+
+It is acceptable to calculate many analytics dynamically from transactional data.
+
+If persistence is needed, consider entities such as:
+
+inventory_alerts
+replenishment_recommendations
+
+Do not store every derived metric unnecessarily.
+
+If recommendations/alerts are persisted, include:
+
+organization_id
+status
+created_at
+updated_at
+relevant foreign keys
+
+Use appropriate indexes.
+
+==================================================
+30. TENANT ISOLATION
+==================================================
+
+Every intelligence calculation must be organization scoped.
+
+A user in Organization A must never see:
+
+- Organization B inventory
+- Organization B products
+- Organization B suppliers
+- Organization B warehouses
+- Organization B recommendations
+- Organization B alerts
+
+Verify this with tests.
+
+==================================================
+31. TESTING
+==================================================
+
+Extend the existing test suite.
+
+All Phase 0 and Phase 1 tests must continue to pass.
+
+Add tests for:
+
+Inventory health calculations
+Days-of-inventory calculation
+Stockout-risk classification
+Overstock classification
+Slow-moving classification
+ABC analysis
+Supplier performance calculation
+Reorder-point calculation
+Recommendation quantity
+Recommendation explanations
+Alert generation
+Alert deduplication
+Tenant isolation
+Cross-tenant recommendation protection
+
+Test edge cases:
+
+- zero demand
+- zero inventory
+- no historical sales
+- no supplier lead time
+- insufficient historical data
+- high demand
+- negative/invalid values
+- completed/cancelled transactions
+
+Use deterministic test data.
+
+Do not weaken existing tests to make new functionality pass.
+
+==================================================
+32. SEED DATA
+==================================================
+
+Extend the existing seed data so the intelligence features have meaningful results.
+
+Preserve the current demo organizations/users.
+
+Add or adjust controlled synthetic history so there are examples of:
+
+- healthy inventory
+- critical stock
+- excess inventory
+- slow-moving products
+- fast-moving products
+- demand spike
+- demand decline
+- good supplier performance
+- poor supplier performance
+- multiple warehouse conditions
+- products with sufficient demand history
+- products with insufficient history
+
+The data should produce visibly different intelligence outcomes.
+
+Do not fabricate analytics directly.
+The seeded transactions must generate the results.
+
+==================================================
+33. FRONTEND QUALITY
+==================================================
+
+Reuse the existing design system.
+
+New pages should have:
+
+- clear KPI hierarchy
+- tables
+- filters
+- loading states
+- empty states
+- error states
+- meaningful explanations
+- responsive behavior
+
+Avoid overly decorative interfaces.
+
+The analytics must be understandable to a business manager.
+
+==================================================
+34. LOCALIZATION
+==================================================
+
+Use the existing localization infrastructure.
+
+Any new visible strings added in Phase 2 must be added to the translation structure.
+
+Support:
+
+English
+French
+Arabic
+
+Arabic must remain RTL.
+
+Do not leave all Phase 2 screens hard-coded in English.
+
+Full translation coverage can be refined in a later localization polish pass, but new architecture should support it correctly.
+
+==================================================
+35. DZD / ALGERIAN CONTEXT
+==================================================
+
+Use existing DZD formatting utilities.
+
+Use existing wilaya structures.
+
+Keep Algerian business context visible without hard-coding unrealistic assumptions.
+
+==================================================
+36. DOCUMENTATION
+==================================================
+
+Update docs/ARCHITECTURE.md.
+
+Document:
+
+- intelligence module architecture
+- metric calculation methodology
+- stockout-risk methodology
+- overstock methodology
+- ABC methodology
+- supplier scoring methodology
+- reorder-point methodology
+- recommendation methodology
+- alert deduplication strategy
+- data sufficiency handling
+
+Update README.md to accurately describe completed Phase 2 functionality.
+
+Do not claim machine learning or advanced forecasting exists.
+
+==================================================
+37. PERFORMANCE
+==================================================
+
+Review queries generated by the intelligence endpoints.
+
+Use appropriate indexes.
+
+Avoid N+1 database access where practical.
+
+Use aggregation queries for large datasets.
+
+Use pagination.
+
+Do not load the entire transaction table into the frontend.
+
+==================================================
+38. PHASE BOUNDARY
+==================================================
+
+Do not create:
+
+Python service
+forecasting models
+ML pipelines
+Supply Quest RPG UI
+advanced executive BI dashboard
+
+Phase 2 should establish the intelligence/business-rule layer that Phase 3 will later extend with Python forecasting.
+
+==================================================
+39. IMPLEMENTATION BEHAVIOR
+==================================================
+
+This is a limited Agent-usage environment.
+
+Do not spend substantial time writing a plan before implementation.
+
+Inspect the current code briefly.
+
+Then implement the Phase 2 vertical slice.
+
+When an error appears:
+
+1. Diagnose it.
+2. Fix the root cause.
+3. Continue.
+4. Re-run the relevant tests.
+
+Do not stop after producing a conceptual architecture.
+
+Actually implement the functionality.
+
+==================================================
+40. DEFINITION OF DONE
+==================================================
+
+Phase 2 is complete only when:
+
+- Phase 0 tests pass
+- Phase 1 tests pass
+- intelligence calculations work
+- inventory health works
+- demand analysis works
+- days-of-inventory works
+- stockout risk works
+- overstock detection works
+- slow-moving detection works
+- ABC analysis works
+- supplier performance works
+- warehouse intelligence works
+- reorder-point calculation works
+- replenishment recommendations work
+- alerts work
+- tenant isolation works
+- frontend intelligence screens work
+- real API data populates the frontend
+- seed data produces meaningful intelligence
+- Prisma schema validates
+- migrations succeed
+- seed succeeds
+- TypeScript checks pass
+- production build passes
+
+Before finishing:
+
+1. Run Prisma validation.
+2. Generate Prisma Client.
+3. Apply any new migration.
+4. Run the seed.
+5. Run the complete test suite.
+6. Run TypeScript checks.
+7. Build the frontend.
+8. Verify the API manually where practical.
+9. Verify the main intelligence screens in the live preview.
+10. Fix errors introduced during the phase.
+
+Do not reset the database.
+
+Do not modify existing applied migrations.
+
+At the end report:
+
+- files created/changed
+- new database models
+- migration name(s)
+- intelligence calculations implemented
+- API endpoints added
+- frontend routes/screens added
+- formulas/methodologies implemented
+- tests and results
+- build results
+- seed results
+- known limitations
+- anything intentionally deferred to Phase 3
+
+Do NOT begin Phase 3 automatically.
