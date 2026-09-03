@@ -1,0 +1,658 @@
+You are the lead software architect and senior full-stack engineer responsible for establishing the foundation of a production-quality portfolio application called "SupplyQuest DZ".
+
+==================================================
+PHASE 0 — FOUNDATION ONLY
+=========================
+
+IMPORTANT:
+
+This is Phase 0 only.
+
+Do NOT implement the complete SupplyQuest DZ product.
+
+Do NOT implement inventory transactions, purchasing workflows, sales workflows, forecasting, advanced analytics, replenishment algorithms, Supply Quests, or the final BI dashboard.
+
+Those belong to later phases.
+
+Your responsibility in this phase is to establish a clean, scalable, maintainable foundation that later phases can build upon safely.
+
+==================================================
+FIRST: INSPECT THE EXISTING REPOSITORY
+======================================
+
+Before creating or modifying files:
+
+1. Inspect the entire existing repository.
+2. Inspect the current README.md.
+3. Inspect the current LICENSE.
+4. Inspect the current .gitignore.
+5. Inspect docs/PRODUCT_SPEC.md.
+6. Determine whether any existing application code is already present.
+7. Preserve useful existing work.
+8. Do not unnecessarily replace existing files.
+
+The GitHub repository is the canonical source of truth.
+
+Do not create a separate Replit-only architecture.
+
+Do not assume the repository is empty.
+
+If an existing technical choice conflicts with this specification, prefer a minimal, well-justified correction and document it in docs/ARCHITECTURE.md rather than blindly replacing large portions of the project.
+
+==================================================
+PRODUCT
+=======
+
+SupplyQuest DZ is a multi-tenant B2B supply-chain management and analytics platform designed initially for Algerian SMEs, distributors, wholesalers, retailers, and food-sector businesses.
+
+The long-term product will manage:
+
+* organizations
+* users
+* roles
+* products
+* categories
+* suppliers
+* warehouses
+* inventory
+* inventory transactions
+* purchase orders
+* sales orders
+* customers
+* analytics
+* demand forecasting
+* stockout risk
+* replenishment recommendations
+* operational "Supply Quests"
+* BI dashboards
+* audit logs
+* French/Arabic/English localization
+
+Only establish the foundation in this phase.
+
+The complete product specification already exists in:
+
+docs/PRODUCT_SPEC.md
+
+Treat that file as the product source of truth.
+
+DO NOT rewrite or replace PRODUCT_SPEC.md unless a factual inconsistency is discovered.
+
+==================================================
+TECHNOLOGY
+==========
+
+Frontend:
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+
+Backend:
+
+* Node.js
+* Express
+* TypeScript
+
+Database:
+
+* PostgreSQL
+* Prisma ORM
+
+Validation:
+
+* Zod
+
+Authentication:
+
+* JWT
+* bcrypt
+
+API style:
+
+* REST
+* versioned under /api/v1/
+
+Use environment variables for configuration.
+
+Use strict TypeScript.
+
+Avoid unnecessary dependencies.
+
+Do NOT introduce technologies that are not required for Phase 0, such as:
+
+* GraphQL
+* Redis
+* Kafka
+* RabbitMQ
+* Elasticsearch
+* Kubernetes
+* multiple databases
+* unnecessary microservices
+
+SupplyQuest DZ is a modular monolith at this stage.
+
+Design the architecture so services can be separated in the future if scale requires it.
+
+==================================================
+ARCHITECTURE
+============
+
+Create a clean monorepo-style structure similar to:
+
+/
+frontend/
+backend/
+prisma/
+docs/
+scripts/
+tests/
+
+You may improve this structure when there is a strong architectural reason, but document that reason.
+
+The architecture should clearly separate:
+
+Frontend presentation
+API routes
+Controllers
+Services/business logic
+Repositories/data access where useful
+Validation
+Authentication
+Authorization
+Database access
+Shared types/utilities where appropriate
+
+Do not place business logic directly inside React components.
+
+Do not put substantial business logic directly inside Express route handlers.
+
+Keep controllers thin.
+
+Business rules belong in the service/domain layer.
+
+==================================================
+DATABASE FOUNDATION
+===================
+
+Create the PostgreSQL + Prisma foundation.
+
+Create only the initial schema for:
+
+organizations
+users
+roles
+user_roles
+warehouses
+product_categories
+products
+suppliers
+customers
+
+Do NOT add future Phase 1/2 transactional schemas yet.
+
+Use UUID primary keys.
+
+Use created_at and updated_at timestamps.
+
+Use:
+
+* foreign keys
+* appropriate unique constraints
+* appropriate indexes
+* relational integrity
+
+Organization-owned entities must contain organization_id where appropriate.
+
+Use PostgreSQL NUMERIC/DECIMAL types where financial values are introduced.
+
+Do not use floating-point numbers for monetary values.
+
+Use a single PostgreSQL database for V1.
+
+Tenant isolation must be implemented at the application/service layer.
+
+Do not create separate databases or schemas per tenant.
+
+==================================================
+MULTI-TENANCY
+=============
+
+SupplyQuest DZ is a multi-tenant SaaS.
+
+An organization represents a business/tenant.
+
+Every authenticated user belongs to exactly one organization.
+
+All organization-owned data must be scoped to the authenticated user's organization.
+
+Create reusable middleware/service utilities for accessing:
+
+currentUser
+currentOrganization
+
+Tenant isolation must be enforced server-side.
+
+Never rely on frontend filtering for tenant security.
+
+The architecture should make accidental cross-tenant queries difficult.
+
+==================================================
+RBAC
+====
+
+Create these roles:
+
+ADMIN
+MANAGER
+PURCHASER
+ANALYST
+OPERATOR
+
+Establish reusable role-based authorization middleware.
+
+At minimum, demonstrate that a protected endpoint can require a specific role.
+
+Do not build a permissions-management UI yet.
+
+==================================================
+AUTHENTICATION
+==============
+
+Implement:
+
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+GET /api/v1/auth/me
+
+Requirements:
+
+* password hashing with bcrypt
+* JWT authentication
+* protected routes
+* input validation
+* invalid credential handling
+* authentication middleware
+* current-user retrieval
+* appropriate token expiration
+* environment-based JWT secret
+* consistent API responses
+
+Because this is a portfolio/demo project, registration may create a new organization and its initial ADMIN user.
+
+Do not implement social login.
+
+Do not expose password hashes or secrets in API responses.
+
+==================================================
+API FOUNDATION
+==============
+
+Create:
+
+GET /api/v1/health
+
+Use:
+
+* centralized error handling
+* Zod validation
+* authentication middleware
+* authorization middleware
+* consistent JSON response structure
+* appropriate HTTP status codes
+
+Use a structure similar to:
+
+{
+"success": true,
+"data": {}
+}
+
+and for errors:
+
+{
+"success": false,
+"error": {
+"code": "...",
+"message": "..."
+}
+}
+
+Do not expose internal stack traces in normal production-style API responses.
+
+==================================================
+FRONTEND FOUNDATION
+===================
+
+Create the React application foundation with:
+
+* routing
+* authentication state
+* protected routes
+* login page
+* registration page
+* basic dashboard shell
+* sidebar navigation
+* top navigation
+* logout
+* current-user display
+
+Do NOT build the final SupplyQuest dashboard.
+
+The dashboard should be a structural placeholder proving that authentication, authorization and navigation work.
+
+Create reusable components for:
+
+Button
+Input
+Select
+Modal/Dialog
+Card
+Table shell
+Loading state
+Error state
+Empty state
+
+Use a clean enterprise SaaS visual language.
+
+Avoid excessive decoration.
+
+==================================================
+LOCALIZATION FOUNDATION
+=======================
+
+Prepare the frontend architecture for:
+
+* English
+* French
+* Arabic
+
+Do not fully translate the entire application in this phase.
+
+Establish:
+
+* language switching
+* translation structure
+* direction handling
+
+English and French:
+LTR
+
+Arabic:
+RTL
+
+Changing to Arabic must change the application direction correctly.
+
+Create reusable locale utilities.
+
+==================================================
+ALGERIAN CONTEXT
+================
+
+The primary business currency is:
+
+DZD — Algerian Dinar
+
+Create reusable formatting utilities for:
+
+* DZD currency
+* dates
+* numbers
+
+Prepare a structured list of Algerian wilayas for later use.
+
+Do not implement complex geography functionality yet.
+
+==================================================
+SEED DATA
+=========
+
+Create a reproducible development seed script.
+
+Seed:
+
+2 organizations
+
+At least:
+6 users
+
+Roles:
+all five roles
+
+5 warehouses total distributed realistically between the demo organizations
+
+10 product categories
+
+30 products
+
+10 suppliers
+
+20 customers
+
+Use realistic synthetic Algerian-oriented business data.
+
+Examples may include generic products relevant to food distribution.
+
+Do not use real private individuals or confidential information.
+
+Make the demo users easy to understand.
+
+Document the demo credentials in development documentation.
+
+The seed process must be deterministic or at least safely repeatable.
+
+==================================================
+TESTING
+=======
+
+Create automated tests for Phase 0.
+
+At minimum test:
+
+1. Health endpoint
+2. Registration
+3. Successful login
+4. Invalid credentials
+5. Protected endpoint without authentication
+6. Protected endpoint with authentication
+7. Role authorization
+8. Organization isolation
+
+The organization-isolation test is mandatory.
+
+Explicitly create:
+
+Organization A
+Organization B
+
+Create data belonging to both organizations.
+
+Authenticate as a user from Organization A.
+
+Verify that the user cannot retrieve Organization B's data.
+
+Do not treat client-side filtering as evidence of tenant isolation.
+
+==================================================
+DOCUMENTATION
+=============
+
+Create:
+
+docs/ARCHITECTURE.md
+
+Do NOT recreate or replace:
+
+docs/PRODUCT_SPEC.md
+
+because it already exists and is the canonical product specification.
+
+ARCHITECTURE.md should document:
+
+* technology stack
+* application architecture
+* folder structure
+* authentication architecture
+* authorization architecture
+* multi-tenancy strategy
+* database strategy
+* API conventions
+* future Python analytics integration
+* major architectural decisions
+* reasons for avoiding unnecessary infrastructure in V1
+
+Include Mermaid diagrams where useful.
+
+Update README.md only where needed to reflect the actual implemented foundation.
+
+Do not turn README.md into a fabricated list of completed features.
+
+Clearly mark unfinished future functionality.
+
+==================================================
+ENVIRONMENT AND SECRETS
+=======================
+
+Create:
+
+.env.example
+
+Document required environment variables.
+
+Never commit:
+
+.env
+
+or real secrets.
+
+Ensure the .gitignore protects environment files and generated dependencies/build artifacts.
+
+==================================================
+QUALITY
+=======
+
+Use strict TypeScript.
+
+Avoid unnecessary "any".
+
+Prefer explicit types.
+
+Use meaningful naming.
+
+Keep functions reasonably small.
+
+Keep controllers thin.
+
+Keep business logic in services.
+
+Avoid duplicated code where reasonable.
+
+Do not over-engineer.
+
+Do not prematurely split the application into independent microservices.
+
+This is intentionally a modular monolith for V1.
+
+==================================================
+GIT SAFETY
+==========
+
+GitHub is the canonical source repository.
+
+Do NOT:
+
+* force-push
+* reset/delete repository history
+* delete the main branch
+* rewrite existing Git history
+* create unnecessary repositories
+
+Do not perform destructive Git operations.
+
+Do not commit secrets.
+
+The human developer will handle the final Git commit/push workflow.
+
+==================================================
+PHASE BOUNDARY
+==============
+
+Do NOT implement:
+
+* inventory transactions
+* purchase orders
+* sales orders
+* receiving
+* stock transfers
+* forecasting
+* advanced analytics
+* ABC analysis
+* replenishment engine
+* stockout prediction
+* supplier scoring
+* Supply Quests
+* final BI dashboard
+
+Those belong to later phases.
+
+You may create extension points/interfaces where useful, but do not implement those features yet.
+
+==================================================
+DEFINITION OF DONE
+==================
+
+Phase 0 is complete only when:
+
+1. Existing repository contents were inspected before modification.
+2. The project builds successfully.
+3. Frontend starts successfully.
+4. Backend starts successfully.
+5. PostgreSQL connection works.
+6. Prisma schema is valid.
+7. Prisma migration works.
+8. Seed script works.
+9. Registration works.
+10. Login works.
+11. Logout strategy works.
+12. Protected endpoints work.
+13. Role authorization works.
+14. Cross-organization data access is rejected.
+15. React protected routing works.
+16. English/French/Arabic localization foundation exists.
+17. Arabic RTL switching works at a basic level.
+18. README remains accurate.
+19. docs/ARCHITECTURE.md exists.
+20. .env.example exists.
+21. Automated Phase 0 tests run successfully.
+22. No obvious build/runtime errors remain.
+23. No secrets are committed.
+24. No Phase 1+ business features have been implemented.
+
+Before finishing:
+
+* run the relevant build commands
+* run migrations
+* run seed
+* run tests
+* inspect the application manually where practical
+* fix errors introduced during this phase
+
+Do not merely describe what should be implemented.
+
+Actually create and modify the files required for Phase 0, run the application, run migrations, seed the database, execute tests, and fix problems.
+
+At the end, provide a concise implementation report containing:
+
+* files created/changed
+* database tables created
+* API endpoints created
+* authentication implementation
+* RBAC implementation
+* tenant-isolation implementation
+* tests executed and results
+* known limitations
+* recommended next phase
+
+Do NOT begin Phase 1 automatically.
