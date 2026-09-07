@@ -1,6 +1,6 @@
 # SupplyQuest DZ
 
-Phase 3 inventory-intelligence and demand-forecasting platform for Algerian SMEs, with a multi-tenant PostgreSQL backend, a Python analytics engine, and a React operations workspace.
+Phase 4 executive inventory-intelligence and decision workspace for Algerian SMEs, with a multi-tenant PostgreSQL backend, a Python analytics engine, and a React operations workspace.
 
 ## Implemented foundation and Phase 1
 
@@ -27,6 +27,11 @@ Phase 3 inventory-intelligence and demand-forecasting platform for Algerian SMEs
 - Naive-last-value, 7-day moving average, and exponential smoothing candidates with chronological backtesting
 - MAE, RMSE, safe MAPE, trend detection, basic weekly seasonality detection, explicit data sufficiency, honest quality states, and uncertainty intervals
 - Persisted forecast runs, forecast points, backtest points, forecast history, performance summaries, and forecast-aware replenishment recommendations
+- Executive management cockpit at `/dashboard` with real revenue, inventory value, stockout, excess, forecast, recommendation, warehouse, and supplier signals
+- Explainable Operational Health Score and prioritized decision feed with drill-down links
+- Executive analytics workspace at `/analytics` for sales, inventory, supplier, warehouse, demand, forecasting, and recommendation views
+- Tenant-scoped Supply Quest board at `/quests`, generated from deduplicated recommendations and alerts with status transitions
+- Print-friendly executive summary workflow using the browser print dialog
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the implemented boundaries and decisions. [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) remains the product source of truth.
 
@@ -63,7 +68,7 @@ Forecast runs and points are persisted for audit/history. A warehouse-specific f
 
 ## Deferred phases
 
-Machine learning, advanced time-series models, advanced executive BI, Supply Quest RPG presentation, and automated external integrations are intentionally deferred to later phases.
+Advanced predictive modeling, automated external integrations, and richer report file generation remain deferred to later phases.
 
 ## License
 

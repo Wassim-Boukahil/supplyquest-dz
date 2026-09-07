@@ -7,6 +7,7 @@ import { foundationRouter } from "./modules/foundation/foundation.routes.js";
 import { phase1Router } from "./modules/phase1/phase1.routes.js";
 import { intelligenceRouter } from "./modules/intelligence/intelligence.routes.js";
 import { forecastingRouter } from "./modules/forecasting/forecasting.routes.js";
+import { executiveRouter } from "./modules/executive/executive.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errors.js";
 import { sendSuccess } from "./utils/api.js";
 
@@ -26,6 +27,7 @@ export function createApp() {
   app.use("/api/v1", phase1Router);
   app.use("/api/v1/intelligence", intelligenceRouter);
   app.use("/api/v1/forecasting", forecastingRouter);
+  app.use("/api/v1/executive", executiveRouter);
 
   app.use((req, res, next) => {
     if (req.path.startsWith("/api/")) {

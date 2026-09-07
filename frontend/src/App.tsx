@@ -8,6 +8,7 @@ import { InventoryPage, MovementsPage, TransfersPage } from "./pages/InventoryPa
 import { OrderDetailPage, OrdersPage } from "./pages/OrderPages";
 import { IntelligenceAlertsPage, IntelligenceDashboardPage, IntelligenceInventoryPage, IntelligenceProductPage, IntelligenceRecommendationsPage, IntelligenceSuppliersPage, IntelligenceWarehousesPage } from "./pages/IntelligencePages";
 import { ForecastingOverviewPage, ForecastingProductPage } from "./pages/ForecastingPages";
+import { AnalyticsPage, ExecutiveDashboardPage, ExecutiveEntityDetailPage, QuestsPage } from "./pages/ExecutivePages";
 
 export function App() {
   const { user, loading } = useAuth();
@@ -15,9 +16,11 @@ export function App() {
   return <Routes>
     <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
     <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
-    <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" replace />} />
+    <Route path="/dashboard" element={user ? <ExecutiveDashboardPage /> : <Navigate to="/login" replace />} />
+    <Route path="/analytics" element={user ? <AnalyticsPage /> : <Navigate to="/login" replace />} />
+    <Route path="/quests" element={user ? <QuestsPage /> : <Navigate to="/login" replace />} />
     {(["products", "categories", "suppliers", "customers", "warehouses"] as const).map((kind) => <Route key={kind} path={`/${kind}`} element={user ? <EntityListPage kind={kind} /> : <Navigate to="/login" replace />} />)}
-    {(["products", "categories", "suppliers", "customers", "warehouses"] as const).map((kind) => <Route key={`${kind}-detail`} path={`/${kind}/:id`} element={user ? <EntityDetailPage kind={kind} /> : <Navigate to="/login" replace />} />)}
+    {(["products", "categories", "suppliers", "customers", "warehouses"] as const).map((kind) => <Route key={`${kind}-detail`} path={`/${kind}/:id`} element={user ? (kind === "products" || kind === "suppliers" || kind === "warehouses" ? <ExecutiveEntityDetailPage kind={kind} /> : <EntityDetailPage kind={kind} />) : <Navigate to="/login" replace />} />)}
     <Route path="/inventory" element={user ? <InventoryPage /> : <Navigate to="/login" replace />} />
     <Route path="/inventory/movements" element={user ? <MovementsPage /> : <Navigate to="/login" replace />} />
     <Route path="/inventory/transfers" element={user ? <TransfersPage /> : <Navigate to="/login" replace />} />

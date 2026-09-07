@@ -1,0 +1,1171 @@
+You are the lead software architect, senior frontend engineer, UX designer, BI developer, and product engineer continuing development of the existing SupplyQuest DZ repository.
+
+==================================================
+PHASE 4 — EXECUTIVE BI, DECISION EXPERIENCE & UX
+==================================================
+
+IMPORTANT:
+
+Phase 0, Phase 1, Phase 2, and Phase 3 are already implemented, tested, committed, and pushed to GitHub.
+
+The application currently contains:
+
+- React + Vite + TypeScript
+- Node.js + Express + TypeScript
+- PostgreSQL + Prisma
+- JWT authentication
+- RBAC
+- multi-tenancy
+- tenant-safe relationships
+- products
+- categories
+- suppliers
+- customers
+- warehouses
+- inventory
+- inventory transactions
+- purchase orders
+- receiving
+- sales orders
+- warehouse transfers
+- inventory intelligence
+- demand analysis
+- stockout risk
+- overstock detection
+- slow/dead-moving detection
+- ABC analysis
+- supplier performance
+- warehouse intelligence
+- reorder points
+- replenishment recommendations
+- alerts
+- Python forecasting
+- forecast evaluation
+- forecast quality
+- forecast uncertainty
+- forecast-aware replenishment
+- forecasting screens
+- existing React application shell
+- localization infrastructure
+- Arabic RTL support
+- automated tests
+
+DO NOT rebuild existing phases.
+
+DO NOT reset the database.
+
+DO NOT replace the existing architecture.
+
+DO NOT upgrade Prisma major versions.
+
+DO NOT introduce unnecessary infrastructure.
+
+This phase is primarily about:
+
+- executive BI
+- visualization
+- drill-down workflows
+- decision support
+- Supply Quests
+- complete localization
+- polished enterprise UX
+
+==================================================
+FIRST PRINCIPLE
+==================================================
+
+The application must not become "a collection of dashboards."
+
+The UI should tell a coherent operational story:
+
+1. What is happening?
+2. Where is the problem?
+3. Why is it happening?
+4. How serious is it?
+5. What should I do?
+6. What happens if I do nothing?
+
+Use the existing Phase 1–3 APIs and data.
+
+Avoid creating duplicate analytics logic in React.
+
+The backend remains the authoritative source for calculations.
+
+==================================================
+SOURCE OF TRUTH
+==================================================
+
+Read:
+
+docs/PRODUCT_SPEC.md
+docs/ARCHITECTURE.md
+
+Inspect the existing:
+
+- AppShell
+- dashboard
+- intelligence pages
+- forecasting pages
+- API client
+- localization infrastructure
+- UI primitives
+- styles
+- routing
+
+Preserve good existing components.
+
+Refactor only when necessary to create a consistent user experience.
+
+==================================================
+1. EXECUTIVE DASHBOARD
+==================================================
+
+Transform the main dashboard into the primary management cockpit.
+
+Route:
+
+/dashboard
+
+The dashboard should immediately communicate business health.
+
+Top KPI cards:
+
+- Revenue
+- Inventory Value
+- Stockout Risk
+- Excess Inventory
+- Forecast Quality
+- Open Recommendations
+
+Add secondary indicators:
+
+- inventory turnover
+- active products
+- active suppliers
+- active warehouses
+- overdue/critical alerts
+
+All figures must come from real APIs.
+
+Do not hard-code statistics.
+
+==================================================
+2. EXECUTIVE HEALTH SCORE
+==================================================
+
+Create a professional overall operational health indicator.
+
+Use existing intelligence signals such as:
+
+- inventory health
+- stockout risk
+- excess inventory
+- supplier performance
+- forecast quality
+- open critical alerts
+
+Produce:
+
+Operational Health Score: 0–100
+
+Also provide a transparent breakdown:
+
+Inventory Health
+Supply Risk
+Supplier Health
+Forecast Quality
+Operational Alerts
+
+Do not hide the methodology.
+
+The user must be able to understand why the score changed.
+
+==================================================
+3. "WHAT NEEDS ATTENTION?" SECTION
+==================================================
+
+Add a prominent prioritized section on the dashboard.
+
+Examples:
+
+CRITICAL:
+Product X may stock out before replenishment arrives.
+
+HIGH:
+Supplier Y has declining delivery reliability.
+
+MEDIUM:
+Warehouse Z has excess stock worth 480,000 DZD.
+
+Each item must link to the relevant detail screen.
+
+Do not invent alerts solely for visual effect.
+
+Use actual Phase 2/3 intelligence results.
+
+==================================================
+4. DECISION FEED
+==================================================
+
+Create a prioritized decision feed.
+
+Every decision item should contain:
+
+- severity
+- entity
+- explanation
+- estimated business impact
+- recommended action
+- link to relevant screen
+
+Example:
+
+"Tomato Paste — stockout risk HIGH.
+Available stock covers 2.4 days.
+Supplier lead time is 6 days.
+Recommended order: 420 units."
+
+This should connect directly to the existing recommendation system.
+
+==================================================
+5. DRILL-DOWN EXPERIENCE
+==================================================
+
+The most important UX requirement is progressive drill-down.
+
+A manager should be able to navigate:
+
+Dashboard
+→ Warehouse
+→ Product
+→ Inventory
+→ Demand
+→ Forecast
+→ Recommendation
+
+And:
+
+Dashboard
+→ Supplier
+→ Performance
+→ Purchase history
+→ Delivery behavior
+
+Do not create dead-end analytics pages.
+
+Add links between related entities.
+
+==================================================
+6. WAREHOUSE EXECUTIVE VIEW
+==================================================
+
+Enhance warehouse intelligence.
+
+Route:
+
+/warehouses/:id
+
+Show:
+
+- operational health
+- inventory value
+- active SKU count
+- stockout-risk products
+- excess inventory
+- slow-moving products
+- recent inventory activity
+
+Charts:
+
+inventory value
+inventory health distribution
+risk distribution
+top products by inventory value
+
+Use real data.
+
+==================================================
+7. SUPPLIER EXECUTIVE VIEW
+==================================================
+
+Enhance supplier intelligence.
+
+Route:
+
+/suppliers/:id
+
+Show:
+
+- supplier health
+- supplier score
+- average lead time
+- on-time delivery
+- average delay
+- purchase volume
+- purchase order history
+- receiving performance
+
+Add visual trends where meaningful.
+
+Show explanations rather than unexplained scores.
+
+==================================================
+8. PRODUCT 360° VIEW
+==================================================
+
+Enhance:
+
+/products/:id
+
+Create a complete operational/intelligence view.
+
+Sections:
+
+PRODUCT OVERVIEW
+
+Inventory by warehouse
+
+Demand
+
+Forecast
+
+Inventory health
+
+Stockout risk
+
+ABC classification
+
+Supplier
+
+Reorder recommendation
+
+Recent activity
+
+The user should be able to understand the product's complete lifecycle from this page.
+
+==================================================
+9. SUPPLY QUEST SYSTEM
+==================================================
+
+This is where the RPG-inspired concept becomes part of the actual product.
+
+Create a professional operational action system called:
+
+SUPPLY QUESTS
+
+A Supply Quest represents a real business action generated from the intelligence layer.
+
+Examples:
+
+"Prevent Tomato Paste Stockout"
+
+"Resolve Excess Inventory in Algiers Warehouse"
+
+"Review Supplier Delivery Risk"
+
+"Rebalance Warehouse Inventory"
+
+"Investigate Demand Spike"
+
+Each quest should include:
+
+- title
+- short explanation
+- priority
+- status
+- related entity
+- reason
+- business impact
+- recommended action
+- created date
+
+Statuses:
+
+OPEN
+IN_PROGRESS
+COMPLETED
+DISMISSED
+
+==================================================
+10. QUEST GENERATION
+==================================================
+
+Generate Supply Quests from existing intelligence signals.
+
+Examples:
+
+HIGH stockout risk
+→ Prevent Stockout quest
+
+EXCESS inventory
+→ Reduce Excess Inventory quest
+
+Poor supplier performance
+→ Review Supplier quest
+
+Demand anomaly
+→ Investigate Demand quest
+
+Do not create random quests.
+
+Quests must originate from real analytics or recommendations.
+
+Avoid generating duplicates.
+
+Use stable deduplication logic.
+
+==================================================
+11. QUEST DETAIL
+==================================================
+
+A quest should explain:
+
+WHY IT EXISTS
+
+Example:
+
+"Current stock is 83 units.
+Forecasted demand over the relevant horizon is 338 units.
+Supplier lead time is 6 days.
+Current stock is insufficient to cover expected demand."
+
+Then:
+
+RECOMMENDED ACTION
+
+"Place a purchase order for 430 units."
+
+Include links to:
+
+product
+warehouse
+supplier
+recommendation
+forecast
+
+where applicable.
+
+==================================================
+12. QUEST BOARD
+==================================================
+
+Create:
+
+/quests
+
+Display:
+
+Open
+In Progress
+Completed
+Dismissed
+
+Allow:
+
+- status changes
+- filtering
+- sorting
+- search
+
+Use professional kanban/table/card design.
+
+Do not make it look like a fantasy game.
+
+==================================================
+13. RPG-INSPIRED STAT SYSTEM
+==================================================
+
+Use subtle RPG-inspired terminology in selected places:
+
+Operational Health
+Supply Risk
+Warehouse Health
+Supplier Stability
+Stock Efficiency
+Operational Level
+
+Do not overuse gaming terminology.
+
+Do not use fictional characters, fantasy artwork, weapons, monsters, etc.
+
+The product remains enterprise software.
+
+==================================================
+14. OPERATIONAL LEVEL
+==================================================
+
+Create a long-term operational progression indicator.
+
+Example:
+
+Operational Level: 14
+
+This can be based on a documented normalized combination of:
+
+- inventory health
+- stockout rate
+- supplier reliability
+- forecast quality
+- process completion
+- operational alerts
+
+Do not present the score as a scientifically validated business metric.
+
+Clearly describe it as an internal product score.
+
+==================================================
+15. EXECUTIVE BI REPORTING
+==================================================
+
+Create a comprehensive BI analytics area.
+
+Route:
+
+/analytics
+
+Sections:
+
+Sales
+Inventory
+Suppliers
+Warehouses
+Demand
+Forecasting
+Recommendations
+
+Provide:
+
+- date filters
+- warehouse filter
+- category filter
+- supplier filter
+- product filter
+
+Use API-side filtering where appropriate.
+
+==================================================
+16. SALES ANALYTICS
+==================================================
+
+Display:
+
+Revenue
+Orders
+Average Order Value
+Units Sold
+Top Products
+Top Categories
+
+Charts:
+
+Revenue Trend
+Units Trend
+Top Products
+Category Contribution
+
+Use real sales data.
+
+==================================================
+17. INVENTORY ANALYTICS
+==================================================
+
+Display:
+
+Inventory Value
+Turnover
+Stock Health
+Aging
+Stockout Risk
+Excess Inventory
+Slow-Moving Stock
+
+Charts:
+
+Inventory Value by Warehouse
+Stock Health Distribution
+Aging Distribution
+Risk Distribution
+
+==================================================
+18. SUPPLIER ANALYTICS
+==================================================
+
+Display:
+
+Supplier Score
+On-Time %
+Average Lead Time
+Average Delay
+Purchase Volume
+
+Charts:
+
+Supplier Comparison
+Delivery Performance
+Purchase Volume
+
+==================================================
+19. WAREHOUSE COMPARISON
+==================================================
+
+Create comparison views between warehouses.
+
+Show:
+
+Inventory Value
+Health
+Risk Products
+Excess Products
+Turnover
+
+Allow clicking into each warehouse.
+
+==================================================
+20. FORECAST ANALYTICS
+==================================================
+
+Integrate the Phase 3 forecasting results into the analytics experience.
+
+Show:
+
+forecast quality
+forecast error
+MAE
+RMSE
+forecastable products
+insufficient-data products
+
+Provide links to the detailed forecasting views.
+
+Do not duplicate forecasting calculations in frontend.
+
+==================================================
+21. EXECUTIVE DATE FILTERS
+==================================================
+
+Create a consistent global date-filter component where useful.
+
+Presets:
+
+7 days
+30 days
+90 days
+6 months
+12 months
+Custom
+
+Use consistent date semantics across analytics.
+
+Clearly indicate when a metric uses a different period.
+
+==================================================
+22. CHART UX
+==================================================
+
+Charts must:
+
+- have useful labels
+- show meaningful units
+- support hover tooltips
+- avoid visual clutter
+- display empty states
+- handle insufficient data
+- remain responsive
+
+Use Recharts or the existing chart solution.
+
+Avoid adding another charting library.
+
+==================================================
+23. TABLE UX
+==================================================
+
+Tables should support:
+
+- sorting
+- filtering
+- pagination
+- search where appropriate
+- row actions
+- links to detail pages
+
+Use consistent table components.
+
+==================================================
+24. GLOBAL SEARCH
+==================================================
+
+Implement a useful global search if the current architecture supports it cleanly.
+
+Search across:
+
+- products
+- suppliers
+- customers
+- warehouses
+- purchase orders
+- sales orders
+- recommendations
+- Supply Quests
+
+Do not build a search engine.
+
+Use backend endpoints or simple indexed database searches.
+
+==================================================
+25. NOTIFICATIONS
+==================================================
+
+Add an operational notifications experience.
+
+Show:
+
+- critical alerts
+- high priority recommendations
+- important forecast issues
+- quest updates
+
+Use the existing alert/recommendation data.
+
+Do not build a real-time websocket system in this phase.
+
+Polling or on-demand refresh is sufficient.
+
+==================================================
+26. COMPLETE LOCALIZATION
+==================================================
+
+This is a major Phase 4 task.
+
+Complete localization for all existing user-facing screens.
+
+Languages:
+
+English
+French
+Arabic
+
+Every visible user-facing string should use the localization infrastructure.
+
+Do not leave large portions of Phase 1–4 UI hard-coded in English.
+
+Support:
+
+- navigation
+- buttons
+- forms
+- tables
+- statuses
+- alerts
+- recommendations
+- dashboards
+- analytics
+- forecasting
+- Supply Quests
+- validation/errors
+- empty/loading states
+
+==================================================
+27. ARABIC RTL
+==================================================
+
+Verify RTL across the actual application.
+
+When Arabic is active:
+
+- document direction becomes RTL
+- navigation behaves correctly
+- tables remain usable
+- charts remain readable
+- forms align correctly
+- icons do not create confusing directionality
+- spacing remains professional
+
+Do not simply set dir="rtl" and assume the job is done.
+
+Manually inspect the main screens.
+
+==================================================
+28. LANGUAGE PERSISTENCE
+==================================================
+
+Ensure the selected language persists between sessions using the existing localization mechanism.
+
+Verify:
+
+English
+→ reload
+→ English
+
+French
+→ reload
+→ French
+
+Arabic
+→ reload
+→ Arabic + RTL
+
+==================================================
+29. RESPONSIVE UX
+==================================================
+
+Improve responsive behavior across:
+
+desktop
+tablet
+mobile
+
+Prioritize:
+
+dashboard
+tables
+forms
+product detail
+inventory
+analytics
+forecasting
+quests
+
+Do not attempt to turn every complex table into a perfect mobile experience if it would harm usability; horizontal scrolling is acceptable where appropriate.
+
+==================================================
+30. ACCESSIBILITY
+==================================================
+
+Perform an accessibility pass.
+
+At minimum:
+
+- labels for form controls
+- keyboard navigation
+- visible focus states
+- semantic buttons/links
+- accessible dialog behavior
+- meaningful alt text where images exist
+- adequate contrast
+- error messages associated with fields
+- appropriate aria attributes where necessary
+
+Fix the password-form accessibility issue noted in earlier Phase 0 work.
+
+Also add a favicon if still missing.
+
+==================================================
+31. DESIGN SYSTEM
+==================================================
+
+Consolidate the existing UI into a consistent design system.
+
+Standardize:
+
+- typography
+- spacing
+- buttons
+- cards
+- badges
+- status indicators
+- form controls
+- tables
+- modals
+- alerts
+- empty states
+
+Do not introduce a large UI framework if the existing Tailwind/custom components are sufficient.
+
+==================================================
+32. LOADING / ERROR / EMPTY STATES
+==================================================
+
+Every major dashboard/table/chart must handle:
+
+loading
+success
+empty
+error
+insufficient data
+
+Do not show broken blank areas.
+
+Example:
+
+"No sufficient historical demand data for this product."
+
+is better than an empty chart.
+
+==================================================
+33. DATA EXPLANATION
+==================================================
+
+Every major KPI or score should make it possible for the user to understand what it represents.
+
+Examples:
+
+Inventory Turnover
+Stockout Risk
+Operational Health
+Supplier Stability
+Forecast Quality
+
+Use tooltips, info panels, or expandable explanations.
+
+Do not overwhelm the screen with technical formulas.
+
+==================================================
+34. EXPORTABLE REPORTS
+==================================================
+
+Implement a basic export/reporting workflow.
+
+Do not build complex document-generation infrastructure.
+
+Provide a print-friendly report or export capability for:
+
+- executive summary
+- inventory intelligence
+- recommendations
+- supplier performance
+
+CSV export is acceptable for detailed tables.
+
+A print-friendly executive report is preferred for summary reporting.
+
+==================================================
+35. EXECUTIVE REPORT
+==================================================
+
+Create a print-friendly executive report containing:
+
+Company/organization
+Reporting period
+Operational health
+Revenue
+Inventory value
+Stockout risk
+Excess inventory
+Top risks
+Top recommendations
+Supplier highlights
+Warehouse highlights
+Forecast summary
+
+Use actual data.
+
+Provide timestamp/report period.
+
+==================================================
+36. FRONTEND PERFORMANCE
+==================================================
+
+Avoid making the dashboard issue dozens of API requests on initial load.
+
+Use:
+
+- aggregated endpoints where available
+- sensible parallel requests
+- loading boundaries
+- memoization where useful
+
+Do not add a state-management library unless genuinely necessary.
+
+==================================================
+37. BACKEND AGGREGATION
+==================================================
+
+Where the dashboard requires multiple related KPIs, prefer backend aggregation endpoints rather than making the frontend reconstruct complex business metrics.
+
+Do not duplicate calculations between Node and React.
+
+==================================================
+38. SECURITY
+==================================================
+
+Preserve:
+
+- authentication
+- RBAC
+- tenant isolation
+
+All new routes must be protected appropriately.
+
+Supply Quests must not leak across organizations.
+
+Analytics filters must remain tenant scoped.
+
+==================================================
+39. TESTING
+==================================================
+
+Do not remove or weaken existing tests.
+
+All existing Phase 0–3 tests must remain passing.
+
+Add tests for important Phase 4 behavior:
+
+- executive dashboard API
+- dashboard tenant isolation
+- quest generation
+- quest deduplication
+- quest status changes
+- organization isolation for quests
+- analytics filters
+- localization persistence where practical
+- report data integrity where practical
+
+Frontend/browser tests should be added for critical workflows where the current testing setup supports them.
+
+==================================================
+40. SEED DATA
+==================================================
+
+Do not fabricate frontend analytics.
+
+Use the existing Phase 1–3 seeded transaction and intelligence history.
+
+Extend the seed only when required to demonstrate:
+
+- multiple quest types
+- different risk levels
+- useful dashboard variation
+- report content
+
+Do not randomly generate fake KPI values.
+
+==================================================
+41. DOCUMENTATION
+==================================================
+
+Update docs/ARCHITECTURE.md with:
+
+- executive dashboard architecture
+- analytics aggregation
+- Supply Quest architecture
+- notification design
+- report generation
+- localization architecture
+- responsive/accessibility considerations
+
+Update README.md accurately.
+
+Add screenshots only where appropriate.
+
+Do not claim features that are not actually implemented.
+
+==================================================
+42. IMPLEMENTATION BEHAVIOR
+==================================================
+
+This is a limited Agent-usage environment.
+
+Do not spend substantial time explaining a plan.
+
+Inspect the existing Phase 3 implementation briefly.
+
+Then implement Phase 4 directly.
+
+Work in coherent vertical slices.
+
+When a problem occurs:
+
+1. diagnose the root cause
+2. fix it
+3. continue
+4. rerun relevant tests
+
+Do not rewrite stable Phase 1–3 code without a clear reason.
+
+==================================================
+43. PERFORMANCE / SCOPE GUARDRAILS
+==================================================
+
+Do NOT introduce:
+
+- Kafka
+- RabbitMQ
+- Redis
+- Kubernetes
+- GraphQL
+- WebSockets
+- microservices
+- new databases
+
+unless a concrete existing requirement makes one unavoidable.
+
+They are not needed for this portfolio V1.
+
+==================================================
+44. DEFINITION OF DONE
+==================================================
+
+Phase 4 is complete when:
+
+1. Executive dashboard is fully implemented.
+2. Dashboard KPIs come from real APIs.
+3. Operational health score works and is explainable.
+4. Attention/decision feed works.
+5. Drill-down navigation works.
+6. Warehouse executive views work.
+7. Supplier executive views work.
+8. Product 360 view works.
+9. Supply Quest generation works.
+10. Supply Quest deduplication works.
+11. Quest statuses work.
+12. Quest board works.
+13. Analytics area is complete enough for executive use.
+14. Sales analytics work.
+15. Inventory analytics work.
+16. Supplier analytics work.
+17. Warehouse comparison works.
+18. Forecast analytics are integrated.
+19. Date filters work.
+20. Notifications use real alert/recommendation data.
+21. English is complete.
+22. French is complete.
+23. Arabic is complete.
+24. Arabic RTL works across major screens.
+25. Language persists after reload.
+26. Responsive layout works.
+27. Accessibility pass is complete.
+28. Favicon is present.
+29. Reports/export functionality works.
+30. All existing Phase 0–3 tests still pass.
+31. Phase 4 tests pass.
+32. Prisma remains valid.
+33. TypeScript passes.
+34. Production build passes.
+35. Seed remains valid.
+36. Live preview works without obvious runtime errors.
+37. No cross-tenant data leakage exists.
+
+Before finishing:
+
+- run the complete test suite
+- run TypeScript checks
+- build the frontend
+- verify API endpoints
+- verify dashboard
+- verify analytics
+- verify Supply Quests
+- verify Arabic RTL
+- verify language persistence
+- verify report output
+- inspect mobile/tablet/desktop layouts where practical
+- restart the workflow before final runtime verification if necessary
+
+Do NOT begin Phase 5 automatically.
+
+At the end, provide:
+
+- files created/changed
+- API endpoints added/changed
+- frontend routes/screens added
+- Supply Quest implementation
+- dashboard implementation
+- analytics implementation
+- localization status
+- accessibility status
+- report/export implementation
+- tests and results
+- build results
+- known limitations
+- anything deferred to Phase 5
+- whether the project is ready to commit to GitHub

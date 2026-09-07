@@ -27,6 +27,7 @@ model Organization {
   recommendations       ReplenishmentRecommendation[]
   alerts                InventoryAlert[]
   forecastRuns          ForecastRun[]
+  quests                SupplyQuest[]
 
   @@map("organizations")
 }
@@ -96,6 +97,7 @@ model Warehouse {
   recommendations       ReplenishmentRecommendation[]
   alerts                InventoryAlert[]
   forecastRuns          ForecastRun[]
+  quests                SupplyQuest[]
 
   @@unique([organizationId, code])
   @@unique([id, organizationId])
@@ -145,6 +147,7 @@ model Product {
   recommendations       ReplenishmentRecommendation[]
   forecastRuns          ForecastRun[]
   alerts                InventoryAlert[]
+  quests                SupplyQuest[]
 
   @@unique([organizationId, sku])
   @@unique([id, organizationId])
@@ -169,6 +172,7 @@ model Supplier {
   products        Product[]
   purchaseOrders  PurchaseOrder[]
   alerts          InventoryAlert[]
+  quests          SupplyQuest[]
 
   @@unique([id, organizationId])
   @@index([organizationId])
@@ -489,6 +493,7 @@ model ReplenishmentRecommendation {
   product             Product                @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Cascade)
   warehouse           Warehouse              @relation(fields: [warehouseId, organizationId], references: [id, organizationId], onDelete: Cascade)
   forecastRun         ForecastRun?           @relation(fields: [forecastRunId], references: [id], onDelete: SetNull)
+  quests              SupplyQuest[]
 
   @@unique([organizationId, productId, warehouseId])
   @@index([organizationId, status])
@@ -527,6 +532,40 @@ model InventoryAlert {
   @@index([warehouseId])
   @@index([supplierId])
   @@map("inventory_alerts")
+}
+
+model SupplyQuest {
+  id                 String                 @id @default(uuid()) @db.Uuid
+  organizationId     String                 @map("organization_id") @db.Uuid
+  fingerprint        String
+  title              String
+  explanation        String
+  priority           RecommendationPriority
+  status             RecommendationStatus   @default(OPEN)
+  entityType         String                 @map("entity_type")
+  productId          String?                @map("product_id") @db.Uuid
+  warehouseId        String?                @map("warehouse_id") @db.Uuid
+  supplierId         String?                @map("supplier_id") @db.Uuid
+  recommendationId   String?                @map("recommendation_id") @db.Uuid
+  reason             String
+  businessImpact     Decimal?               @map("business_impact") @db.Decimal(14, 2)
+  recommendedAction  String                 @map("recommended_action")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  completedAt        DateTime?              @map("completed_at")
+  organization       Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product            Product?               @relation(fields: [productId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  warehouse          Warehouse?             @relation(fields: [warehouseId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  supplier           Supplier?              @relation(fields: [supplierId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  recommendation     ReplenishmentRecommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, fingerprint])
+  @@index([organizationId, status])
+  @@index([organizationId, priority])
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([supplierId])
+  @@map("supply_quests")
 }
 
 model ForecastRun {

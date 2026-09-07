@@ -114,7 +114,7 @@ The intelligence module reads organization-scoped inventory levels, immutable in
 
 Demand-derived values explicitly carry an insufficient-data state when the selected period or transaction history cannot support a reliable signal. Recommendations are not created without sufficient demand and lead-time data.
 
-`ReplenishmentRecommendation` and `InventoryAlert` are the only Phase 2 derived entities. They are organization-scoped, indexed by tenant/status/entity, and use stable product/warehouse or condition fingerprints to prevent duplicate records when a condition is unchanged. Status changes are separate authenticated mutations.
+`ReplenishmentRecommendation` and `InventoryAlert` are the Phase 2 derived entities. They are organization-scoped, indexed by tenant/status/entity, and use stable product/warehouse or condition fingerprints to prevent duplicate records when a condition is unchanged. Status changes are separate authenticated mutations.
 
 Phase 2 endpoints are under `/api/v1/intelligence`: `overview`, `inventory-health`, `demand`, `stockout-risk`, `overstock`, `slow-moving`, `abc`, `suppliers`, `warehouses`, `reorder-points`, `recommendations`, `alerts`, and `products/:id`. Collection endpoints use server-side filters/pagination. No cache, queue, Redis, Python service, ML model, or advanced forecast is introduced.
 
@@ -150,3 +150,11 @@ The Python engine compares `NAIVE_LAST_VALUE`, `MOVING_AVERAGE_7_DAY`, and `EXPO
 Forecast runs and forecast/backtest points are immutable history records. Current product detail loads the latest tenant-scoped run, while the run history and performance endpoints expose prior evaluations. Forecast-aware replenishment extends the Phase 2 baseline rather than replacing it: it uses selected forecast demand, supplier lead time, safety stock, available inventory, and a 14-day review signal, and labels the persisted recommendation `FORECAST_AWARE`. Missing/short history never creates an apparently confident replenishment signal.
 
 The analytics runtime currently uses Python standard-library primitives (`statistics`, `math`, and `datetime`) so the project has no hidden pandas/NumPy/scikit-learn requirement. This is deliberate for the current Replit environment; advanced model families can be introduced later behind the same JSON contract.
+
+## Phase 4: executive decision experience
+
+Phase 4 adds an executive read model without moving business calculations into React. `/api/v1/executive/dashboard` calls the existing intelligence service, aggregates completed sales and forecast quality, and returns KPI cards, an explainable 0–100 Operational Health Score, a normalized internal Operational Level, warehouse/supplier highlights, and a prioritized decision feed. `/api/v1/executive/analytics` exposes the same scoped data as sales, inventory, supplier, warehouse, demand, forecast, and recommendation sections with period and entity filters.
+
+Supply Quests are persisted in the tenant-scoped `supply_quests` table. Quest generation is deterministic: current recommendations create replenishment quests and current alerts create operational quests, both keyed by a stable organization/fingerprint pair. Upserts refresh the explanation and recommended action without resetting a user's status, preventing duplicate quests. Authenticated role-protected mutations move quests through `OPEN`, `IN_PROGRESS`, `COMPLETED`, and `DISMISSED`; all related entity links are tenant-scoped.
+
+The frontend management cockpit lives at `/dashboard`, `/analytics`, and `/quests`. Product, supplier, and warehouse routes progressively drill from the catalog record into the existing intelligence APIs. The executive report uses a print-friendly browser workflow rather than introducing document-generation infrastructure. Responsive CSS keeps the cockpit cards readable on small screens, preserves horizontal scrolling for the quest board and data tables, and adds visible score explanations and action links.
