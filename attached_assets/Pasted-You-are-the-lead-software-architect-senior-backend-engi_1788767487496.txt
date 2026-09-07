@@ -1,0 +1,986 @@
+You are the lead software architect, senior backend engineer, and data scientist continuing development of the existing SupplyQuest DZ repository.
+
+==================================================
+PHASE 3 — DATA SCIENCE & DEMAND FORECASTING
+==================================================
+
+IMPORTANT:
+
+Phase 0, Phase 1, and Phase 2 are already implemented, tested, committed, and pushed to GitHub.
+
+The existing application already contains:
+
+- React + Vite + TypeScript
+- Node.js + Express + TypeScript
+- PostgreSQL + Prisma
+- JWT authentication
+- RBAC
+- multi-tenancy
+- tenant-safe domain relationships
+- products
+- categories
+- suppliers
+- customers
+- warehouses
+- inventory
+- inventory transactions
+- purchasing
+- receiving
+- sales
+- transfers
+- inventory intelligence
+- demand analysis
+- stockout/overstock analysis
+- ABC analysis
+- supplier performance
+- warehouse intelligence
+- reorder points
+- explainable replenishment recommendations
+- alerts
+- intelligence UI
+- automated tests
+
+The current repository is a working Phase 2 checkpoint.
+
+DO NOT rebuild Phase 0, Phase 1, or Phase 2.
+
+DO NOT replace the existing architecture.
+
+DO NOT reset the database.
+
+DO NOT modify existing applied migrations.
+
+DO NOT upgrade Prisma major versions.
+
+DO NOT introduce unnecessary infrastructure.
+
+This is Phase 3 only.
+
+==================================================
+PHASE 3 OBJECTIVE
+==================================================
+
+Add a real Data Science / forecasting layer that builds on the existing transactional and intelligence data.
+
+The Phase 3 system should answer:
+
+1. What is the expected future demand for a product?
+2. How reliable is that forecast?
+3. How well has the forecasting method performed historically?
+4. How does forecasted demand affect replenishment decisions?
+5. Why was a particular forecast produced?
+6. What data was used?
+7. What forecasting method was used?
+
+The output must be explainable.
+
+DO NOT create fake AI output.
+
+DO NOT display arbitrary confidence percentages.
+
+DO NOT claim advanced machine learning where a statistical model is being used.
+
+==================================================
+STRICT PHASE BOUNDARY
+==================================================
+
+Implement:
+
+- Python analytics service
+- demand forecasting
+- forecast evaluation
+- forecast uncertainty/quality indicators
+- forecast-aware replenishment
+- actual vs forecast analysis
+- forecast history where useful
+- forecasting API integration
+- forecast UI
+
+Do NOT implement:
+
+- Supply Quest RPG UI
+- final executive BI dashboard
+- external ERP integrations
+- external payment integrations
+- mobile application
+- advanced MLOps
+- automatic model retraining pipelines
+- complex cloud infrastructure
+
+Those belong to later phases.
+
+==================================================
+ARCHITECTURE
+==================================================
+
+Preserve the existing modular monolith.
+
+Keep Node/Express as the primary application/API layer.
+
+Add a Python analytics component under a clean structure such as:
+
+analytics/
+  forecasting/
+  models/
+  evaluation/
+  features/
+  scripts/
+
+The exact structure can be improved if there is a strong reason.
+
+Document the architecture.
+
+Preferred data flow:
+
+PostgreSQL
+   ↓
+Node/Express
+   ↓
+Python Analytics
+   ↓
+Forecast / Evaluation / Uncertainty
+   ↓
+Node/Express
+   ↓
+React
+
+Do not unnecessarily introduce another database.
+
+Do not add Redis/Kafka/RabbitMQ unless absolutely required. They are not required for V1.
+
+==================================================
+SOURCE OF TRUTH
+==================================================
+
+Read:
+
+docs/PRODUCT_SPEC.md
+docs/ARCHITECTURE.md
+
+Inspect the existing Phase 2 intelligence implementation.
+
+Reuse:
+
+- existing organization scoping
+- existing authentication
+- existing authorization
+- existing API conventions
+- existing database layer
+- existing intelligence calculations
+- existing frontend API client
+- existing formatting/localization infrastructure
+
+Do not duplicate business logic unnecessarily.
+
+==================================================
+1. PYTHON ANALYTICS ENVIRONMENT
+==================================================
+
+Create a reproducible Python environment.
+
+Use:
+
+- Python 3
+- pandas
+- numpy
+- scipy where useful
+- scikit-learn only where justified
+
+Provide:
+
+requirements.txt
+
+and/or another simple reproducible environment definition.
+
+Do not add libraries merely for appearance.
+
+Document setup.
+
+==================================================
+2. FORECASTING INPUT DATA
+==================================================
+
+Forecasting must be based on actual historical sales transactions in PostgreSQL.
+
+For each product, build a time series from completed sales.
+
+Support aggregation at least daily, with weekly aggregation where useful.
+
+Features/data should include where available:
+
+- product
+- warehouse
+- date
+- units sold
+- revenue
+- recent demand
+- historical demand
+- demand volatility
+- seasonality indicators
+
+Do not use:
+
+- random numbers
+- hard-coded forecasts
+- fabricated historical data
+
+The existing seed data must remain the source of demo history.
+
+==================================================
+3. DATA SUFFICIENCY
+==================================================
+
+Before forecasting a product, evaluate whether enough historical data exists.
+
+Define minimum-data rules.
+
+For example:
+
+- very little history → insufficient data
+- moderate history → baseline forecast
+- sufficient history → richer model comparison
+
+Make the thresholds configurable/documented.
+
+Never produce a misleading forecast when the data is insufficient.
+
+Return an explicit status such as:
+
+SUFFICIENT
+LIMITED
+INSUFFICIENT
+
+==================================================
+4. BASELINE FORECASTING
+==================================================
+
+Implement a robust, explainable baseline.
+
+At minimum include:
+
+- naive forecast
+- moving average
+- weighted moving average or exponential smoothing
+
+Use a method-selection strategy based on historical data where appropriate.
+
+Do not assume a complex model is automatically better.
+
+The system should be capable of comparing candidate models.
+
+==================================================
+5. EXPONENTIAL SMOOTHING
+==================================================
+
+Implement an exponential-smoothing approach where suitable.
+
+Document:
+
+- smoothing assumptions
+- required history
+- behavior with sparse data
+- behavior with zero-demand periods
+
+Return the model/method used.
+
+==================================================
+6. TREND
+==================================================
+
+Detect demand trend.
+
+Return something understandable such as:
+
+UP
+STABLE
+DOWN
+
+and an estimated trend magnitude.
+
+Example:
+
+"Recent demand is approximately 14% above the historical baseline."
+
+Do not claim that trend alone predicts future demand accurately.
+
+==================================================
+7. SEASONALITY
+==================================================
+
+Where enough historical data exists, detect basic recurring patterns.
+
+Do not force seasonality onto insufficient data.
+
+Provide:
+
+seasonality_detected
+seasonality_type if applicable
+strength/quality indicator where defensible
+
+If insufficient history exists:
+
+seasonality_detected = false
+
+==================================================
+8. MODEL SELECTION
+==================================================
+
+For eligible products, compare reasonable candidate models.
+
+Possible candidates:
+
+- naive
+- moving average
+- exponential smoothing
+
+Select using historical backtesting/error metrics.
+
+Do not build an unnecessarily complex ML model in V1.
+
+The model-selection result should include:
+
+selected_method
+candidate_methods
+evaluation_period
+selection_reason
+
+==================================================
+9. BACKTESTING
+==================================================
+
+Implement time-series backtesting.
+
+Do NOT randomly shuffle time series data.
+
+Use chronological train/test splits.
+
+Evaluate historical predictions using appropriate metrics.
+
+At minimum calculate:
+
+MAE
+RMSE
+
+Calculate MAPE only where mathematically appropriate and document zero-demand handling.
+
+Return:
+
+metric values
+evaluation window
+number of observations
+
+==================================================
+10. FORECAST QUALITY
+==================================================
+
+Create a forecast quality indicator based on actual evaluation results and data sufficiency.
+
+Do not produce arbitrary percentages.
+
+A forecast quality state might be:
+
+HIGH
+MEDIUM
+LOW
+INSUFFICIENT_DATA
+
+Explain why.
+
+Example:
+
+"MEDIUM quality because the product has 92 days of history, but demand is highly variable and historical MAE is 18 units/day."
+
+==================================================
+11. FORECAST UNCERTAINTY
+==================================================
+
+Where statistically defensible, provide an uncertainty interval.
+
+Do not fake precision.
+
+For example:
+
+Forecast:
+420 units
+
+Expected range:
+360–487 units
+
+The UI must clearly identify the range as an estimate.
+
+If the available methodology cannot support a reliable interval, show:
+
+"Uncertainty range unavailable for this forecast."
+
+Do not invent one.
+
+==================================================
+12. FORECAST HORIZONS
+==================================================
+
+Support:
+
+7-day forecast
+14-day forecast
+30-day forecast
+
+Return daily forecast values where practical.
+
+Allow the frontend to display:
+
+historical demand
+forecast
+uncertainty range where available
+
+==================================================
+13. FORECAST OUTPUT
+==================================================
+
+A forecast should contain:
+
+product
+warehouse where applicable
+horizon
+forecast date
+predicted quantity
+method
+quality
+historical observations
+evaluation metrics
+trend
+seasonality information
+uncertainty information
+generated_at
+
+Keep the result explainable.
+
+==================================================
+14. FORECAST PERSISTENCE
+==================================================
+
+Consider adding persistence for forecast runs.
+
+If persisted, create appropriate entities such as:
+
+forecast_runs
+forecast_points
+forecast_metrics
+
+Use:
+
+organization_id
+
+and appropriate foreign keys.
+
+Do not store unnecessary duplicated information.
+
+Make forecast runs traceable.
+
+A user should be able to understand:
+
+when
+for which product
+using which method
+with which evaluation metrics
+
+a forecast was generated.
+
+==================================================
+15. FORECAST API
+==================================================
+
+Create APIs under:
+
+/api/v1/
+
+Suggested:
+
+GET /api/v1/forecasting/overview
+
+GET /api/v1/forecasting/products/:id
+
+GET /api/v1/forecasting/products/:id/forecast
+
+POST /api/v1/forecasting/products/:id/generate
+
+GET /api/v1/forecasting/runs
+
+GET /api/v1/forecasting/performance
+
+All endpoints must:
+
+- authenticate
+- enforce RBAC
+- enforce organization isolation
+- validate input
+- return consistent API responses
+
+Do not expose another organization's forecasts.
+
+==================================================
+16. FORECAST GENERATION
+==================================================
+
+Implement a safe generation workflow.
+
+The Node backend should provide the authenticated organization/product context.
+
+The Python layer should perform analytics.
+
+Do not allow a user to make the Python service directly choose arbitrary organization/product IDs outside authorized scope.
+
+The Node layer remains authoritative for authorization.
+
+==================================================
+17. FORECAST-AWARE REPLENISHMENT
+==================================================
+
+Phase 2 currently uses baseline demand/reorder calculations.
+
+Extend the replenishment calculation so that eligible products can use forecasted demand.
+
+Conceptually:
+
+forecasted demand during lead time
++
+safety stock
++
+review-period demand
+=
+target stock
+
+Then:
+
+recommended quantity =
+max(0, target stock - available quantity)
+
+Do not completely discard the Phase 2 methodology.
+
+Provide a clear distinction between:
+
+BASELINE RECOMMENDATION
+and
+FORECAST-AWARE RECOMMENDATION
+
+where appropriate.
+
+==================================================
+18. RECOMMENDATION EXPLANATION
+==================================================
+
+Forecast-aware recommendations must explain:
+
+- forecast method
+- forecast demand
+- lead time
+- safety stock
+- current available inventory
+- target stock
+- recommended quantity
+- forecast quality
+
+Example:
+
+"Recommended 430 units based on a 14-day forecast of 338 units, supplier lead time of 6 days, safety stock of 92 units, and current available inventory of 81 units."
+
+Do not show an unexplained number.
+
+==================================================
+19. FORECAST VS ACTUAL
+==================================================
+
+Implement historical comparison.
+
+Where forecast history exists, calculate:
+
+forecast
+actual
+error
+absolute error
+
+Display:
+
+forecast vs actual chart
+
+and key evaluation metrics.
+
+==================================================
+20. PYTHON/NODE INTEGRATION
+==================================================
+
+Choose a reliable and simple integration mechanism.
+
+A local HTTP service is acceptable.
+
+If using an HTTP analytics service:
+
+- document its endpoint contract
+- validate inputs
+- handle timeouts
+- handle unavailable service errors
+- never expose secrets
+- return structured errors
+
+If another mechanism is more appropriate for Replit, use it and document the choice.
+
+Do not introduce unnecessary infrastructure.
+
+==================================================
+21. ERROR HANDLING
+==================================================
+
+Forecast generation must fail gracefully.
+
+Handle:
+
+- insufficient history
+- missing product
+- missing warehouse
+- unavailable Python service
+- malformed analytics output
+- invalid parameters
+- timeout
+- zero demand
+- all-zero demand history
+- sparse data
+
+Never crash the main application because forecasting is unavailable.
+
+==================================================
+22. FRONTEND FORECASTING
+==================================================
+
+Extend the existing React app.
+
+Do not replace the existing AppShell.
+
+Add:
+
+/forecasting
+/forecasting/products/:id
+
+The forecasting overview should show:
+
+products eligible for forecasting
+products with insufficient history
+forecast quality
+recent forecast runs
+forecast error metrics
+
+==================================================
+23. PRODUCT FORECAST PAGE
+==================================================
+
+Display:
+
+Product
+Warehouse
+Historical demand chart
+Forecast chart
+Uncertainty interval where available
+Forecast horizon selector
+Forecast method
+Forecast quality
+MAE
+RMSE
+Trend
+Seasonality
+Data sufficiency
+
+Include an explanation panel:
+
+WHY THIS FORECAST WAS GENERATED
+
+==================================================
+24. FORECAST GENERATION UI
+==================================================
+
+Allow an authorized user to request a forecast.
+
+Inputs:
+
+product
+warehouse where applicable
+horizon
+
+Show:
+
+generating
+success
+failure
+insufficient-data
+
+states.
+
+Do not expose internal Python implementation details unnecessarily.
+
+==================================================
+25. FORECASTING DASHBOARD
+==================================================
+
+Create a professional forecasting dashboard.
+
+KPIs:
+
+Forecastable Products
+Insufficient Data
+High Quality Forecasts
+Average MAE
+Average RMSE
+Forecast Runs
+
+Charts:
+
+Forecast vs Actual
+Forecast Quality Distribution
+Demand Trend
+Forecast Horizon Summary
+
+This is not yet the final executive BI dashboard.
+
+==================================================
+26. LOCALIZATION
+==================================================
+
+Reuse existing localization.
+
+All new visible labels must use the localization infrastructure.
+
+Support:
+
+English
+French
+Arabic
+
+Arabic RTL must remain correct.
+
+Do not introduce a large set of untranslated hard-coded strings.
+
+==================================================
+27. DZD / ALGERIAN CONTEXT
+==================================================
+
+Retain:
+
+DZD formatting
+Algerian wilayas
+existing product/supplier/warehouse context
+
+Forecast quantity is a unit quantity, not a currency amount.
+
+Use existing formatting utilities appropriately.
+
+==================================================
+28. DATABASE MIGRATIONS
+==================================================
+
+If new persistence is required:
+
+- create a NEW Prisma migration
+- do not edit existing migrations
+- do not reset the database
+- preserve Phase 0/1/2 data
+
+If you add forecast tables, index:
+
+organization_id
+product_id
+warehouse_id
+forecast dates
+created_at
+
+==================================================
+29. SEED DATA
+==================================================
+
+Extend the existing seed data only as necessary.
+
+Do not fabricate forecast results.
+
+The existing transaction history should be sufficient for several products.
+
+Add controlled historical data only if needed to demonstrate:
+
+- strong forecast history
+- weak forecast history
+- insufficient history
+- seasonal or trending behavior
+
+The seed should produce meaningful and deterministic forecasting results.
+
+==================================================
+30. TESTING
+==================================================
+
+Do not remove or weaken existing tests.
+
+All Phase 0, Phase 1 and Phase 2 tests must remain passing.
+
+Add tests for:
+
+Python forecasting calculations
+data sufficiency
+naive forecast
+moving average
+exponential smoothing
+model selection
+backtesting
+MAE
+RMSE
+MAPE handling
+trend detection
+seasonality handling
+forecast quality
+uncertainty handling
+forecast persistence
+forecast API
+organization isolation
+forecast-aware replenishment
+failure when analytics service unavailable
+
+Use deterministic fixtures.
+
+Time-series tests must not shuffle chronological order.
+
+==================================================
+31. TESTING EDGE CASES
+==================================================
+
+Explicitly test:
+
+- no history
+- very short history
+- zero-demand product
+- intermittent demand
+- constant demand
+- strong growth
+- strong decline
+- high volatility
+- missing lead time
+- Python service failure
+- timeout
+- unauthorized forecasting request
+- cross-tenant forecast access
+
+==================================================
+32. PERFORMANCE
+==================================================
+
+Do not generate forecasts for every product on every page request.
+
+Forecast generation should be explicit or sensibly controlled.
+
+Avoid loading huge transaction datasets into memory unnecessarily.
+
+Query only the data required for the requested product/warehouse/time range.
+
+==================================================
+33. DOCUMENTATION
+==================================================
+
+Update docs/ARCHITECTURE.md with:
+
+- Python analytics architecture
+- Node/Python integration
+- forecast data flow
+- model-selection strategy
+- backtesting methodology
+- evaluation metrics
+- uncertainty approach
+- data sufficiency rules
+- forecast-aware replenishment
+
+Update README.md with the actually implemented Phase 3 capabilities.
+
+Do not claim "AI" generically.
+
+Explain exactly which methods are implemented.
+
+==================================================
+34. IMPLEMENTATION BEHAVIOR
+==================================================
+
+This is a limited Agent-usage environment.
+
+Do not spend substantial time producing a long plan.
+
+Inspect the existing implementation briefly.
+
+Then begin implementation immediately.
+
+When an error occurs:
+
+1. diagnose root cause
+2. fix it
+3. continue
+4. rerun relevant validation
+
+Do not stop after merely scaffolding the Python service.
+
+The goal is a working end-to-end forecasting feature.
+
+==================================================
+35. DEFINITION OF DONE
+==================================================
+
+Phase 3 is complete only when:
+
+1. Python analytics environment works.
+2. Node can request forecasting.
+3. Python can consume the required data.
+4. Forecasts use real PostgreSQL transaction history.
+5. At least one baseline forecasting method works.
+6. Exponential smoothing works where appropriate.
+7. Model comparison/selection works where enough data exists.
+8. Chronological backtesting works.
+9. MAE and RMSE work.
+10. MAPE is handled safely.
+11. Data sufficiency is handled.
+12. Forecast quality is explainable.
+13. Uncertainty is handled honestly.
+14. 7/14/30-day horizons work.
+15. Forecast results are exposed through the API.
+16. Tenant isolation applies to forecasting.
+17. Forecast-aware replenishment works.
+18. React forecasting screens work.
+19. Existing Phase 0/1/2 tests still pass.
+20. New Phase 3 tests pass.
+21. TypeScript check passes.
+22. Prisma validation passes.
+23. Migrations succeed.
+24. Seed succeeds.
+25. Production frontend build passes.
+26. Live preview works.
+27. No obvious runtime errors remain.
+
+Before finishing:
+
+- run the complete test suite
+- run Python tests
+- run TypeScript checks
+- validate Prisma
+- apply migrations
+- run seed
+- verify forecasting API
+- verify forecast UI
+- verify forecast-aware recommendations
+- test failure handling
+
+Do not start Phase 4 automatically.
+
+At the end provide:
+
+- files created/changed
+- Python modules created
+- database models added/changed
+- migration name(s)
+- API endpoints
+- forecasting methods
+- evaluation metrics
+- data sufficiency methodology
+- uncertainty methodology
+- forecast-aware replenishment methodology
+- tests/results
+- build results
+- known limitations
+- anything deferred to Phase 4

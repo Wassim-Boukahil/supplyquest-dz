@@ -61,5 +61,29 @@ export type IntelligenceOverview = {
 };
 export type SupplierIntelligence = { id: string; name: string; wilaya?: string | null; averageLeadTime: number | null; configuredLeadTime: number | null; onTimeRate: number | null; lateDeliveryRate: number | null; averageDelay: number | null; totalPurchaseVolume: number; purchaseOrderCount: number; partialDeliveryRate: number | null; performanceScore: number | null; explanation: string };
 export type WarehouseIntelligence = { id: string; name: string; inventoryValue: number; activeProducts: number; riskProducts: number; excessProducts: number; totalOnHandUnits: number; healthScore: number };
-export type Recommendation = { id: string; priority: string; status: string; riskLevel: string; recommendedQuantity: number; reorderPoint: number; targetStock: number; currentAvailable: number; averageDailyDemand: number | string; leadTimeDays: number | null; safetyStock: number; stockoutHorizonDays: number | string | null; reason: string; product: Product; warehouse: Warehouse };
+export type Recommendation = { id: string; priority: string; status: string; riskLevel: string; recommendedQuantity: number; reorderPoint: number; targetStock: number; currentAvailable: number; averageDailyDemand: number | string; leadTimeDays: number | null; safetyStock: number; stockoutHorizonDays: number | string | null; reason: string; recommendationMode?: string; forecastMethod?: string | null; forecastQuality?: string | null; forecastDemand?: number | string | null; forecastHorizonDays?: number | null; product: Product; warehouse: Warehouse };
 export type IntelligenceAlert = { id: string; type: string; severity: string; status: string; title: string; message: string; recommendedAction?: string | null; createdAt: string; product?: Product | null; warehouse?: Warehouse | null; supplier?: Contact | null };
+
+export type ForecastPoint = { id: string; forecastDate: string; pointType: "FORECAST" | "BACKTEST"; predictedQuantity: number; actualQuantity: number | null; lowerBound: number | null; upperBound: number | null; error: number | null };
+export type ForecastRun = {
+  id: string; productId: string; warehouseId: string | null; horizonDays: number; dataStatus: string; quality: string;
+  selectedMethod: string; candidateMethods: string[]; candidateMetrics: Record<string, { mae: number | null; rmse: number | null; mape: number | null; observations: number }>;
+  observationCount: number; nonZeroObservationCount: number; evaluationPeriod: number; mae: number | null; rmse: number | null; mape: number | null;
+  trendDirection: string; trendMagnitude: number | null; seasonalityDetected: boolean; seasonalityType: string | null; seasonalityStrength: number | null;
+  uncertaintyAvailable: boolean; uncertaintyMethod: string | null; selectionReason: string; qualityReason: string; generatedAt: string;
+  product?: Product; warehouse?: Warehouse | null; points: ForecastPoint[];
+};
+export type ForecastOverview = {
+  forecastableProducts: number; insufficientData: number; highQualityForecasts: number; averageMae: number | null; averageRmse: number | null; forecastRuns: number;
+  qualityDistribution: { quality: string; count: number }[];
+  recentRuns: { id: string; productId: string; quality: string; selectedMethod: string; mae: number | null; rmse: number | null; generatedAt: string; product: { name: string; sku: string }; warehouse?: { name: string } | null }[];
+};
+export type ForecastProductData = {
+  product: Product & { preferredSupplier?: Contact | null };
+  warehouse: Warehouse | null;
+  warehouses: Warehouse[];
+  historical: { date: string; units: number }[];
+  run: ForecastRun | null;
+  explanation: string;
+};
+export type ForecastPerformance = { runs: number; scoredRuns: number; averageMae: number | null; averageRmse: number | null; averageMape: number | null; methods: { method: string; runs: number; averageMae: number }[] };

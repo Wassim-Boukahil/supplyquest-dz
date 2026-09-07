@@ -1,6 +1,6 @@
 # SupplyQuest DZ
 
-Phase 2 inventory-intelligence platform for Algerian SMEs, with a multi-tenant PostgreSQL backend and a React operations workspace.
+Phase 3 inventory-intelligence and demand-forecasting platform for Algerian SMEs, with a multi-tenant PostgreSQL backend, a Python analytics engine, and a React operations workspace.
 
 ## Implemented foundation and Phase 1
 
@@ -22,6 +22,11 @@ Phase 2 inventory-intelligence platform for Algerian SMEs, with a multi-tenant P
 - Explainable inventory health, demand, coverage, aging, turnover, slow-moving, overstock, and ABC analytics
 - Stockout risk, reorder points, replenishment recommendations, supplier performance, warehouse comparison, and deduplicated operational alerts
 - Intelligence dashboard and detail screens at `/intelligence`, `/intelligence/inventory`, `/intelligence/suppliers`, `/intelligence/warehouses`, `/intelligence/recommendations`, and `/intelligence/alerts`
+- Demand forecasting dashboard and product detail screens at `/forecasting` and `/forecasting/products/:id`
+- Tenant-scoped forecast generation from PostgreSQL SALE transactions through a JSON Node-to-Python subprocess boundary
+- Naive-last-value, 7-day moving average, and exponential smoothing candidates with chronological backtesting
+- MAE, RMSE, safe MAPE, trend detection, basic weekly seasonality detection, explicit data sufficiency, honest quality states, and uncertainty intervals
+- Persisted forecast runs, forecast points, backtest points, forecast history, performance summaries, and forecast-aware replenishment recommendations
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the implemented boundaries and decisions. [docs/PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) remains the product source of truth.
 
@@ -48,9 +53,17 @@ Analytics are calculated from PostgreSQL inventory levels and immutable transact
 
 All signals are business-rule/statistical indicators, not machine learning. The API marks insufficient history explicitly. Recommendation and alert status is persisted, while derived metrics stay dynamic. ABC uses sales-revenue contribution with 80%/95% cumulative thresholds. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full methodology and thresholds.
 
+## Phase 3 forecasting methodology
+
+Node/Express remains the authorization and API layer. It aggregates already tenant-scoped daily SALE quantities from PostgreSQL and passes JSON to `analytics/service.py`; Python never opens a database connection. Forecasts support 7, 14, and 30-day horizons. The engine fills missing days with zero demand, requires at least 14 non-zero days and 56 calendar days for a sufficient series, and marks shorter histories as `LIMITED` or `INSUFFICIENT` instead of silently presenting confidence.
+
+Candidate models are intentionally simple and explainable: last observed value, 7-day moving average, and level-only exponential smoothing. When enough history exists, the engine withholds the final chronological holdout, calculates MAE/RMSE and MAPE that excludes zero-actual rows, and selects the lowest-RMSE candidate. Prediction intervals are only emitted when backtest RMSE supports them; otherwise the API reports that uncertainty is unavailable. These are operational forecasts, not guarantees or autonomous purchase orders.
+
+Forecast runs and points are persisted for audit/history. A warehouse-specific forecast may extend the Phase 2 recommendation with lead-time demand, safety stock, and a 14-day review signal. Baseline recommendations remain available and are labeled separately from `FORECAST_AWARE` recommendations.
+
 ## Deferred phases
 
-Python forecasting, machine learning, advanced time-series models, forecast evaluation, advanced executive BI, Supply Quest RPG presentation, and automated external integrations are intentionally deferred to later phases.
+Machine learning, advanced time-series models, advanced executive BI, Supply Quest RPG presentation, and automated external integrations are intentionally deferred to later phases.
 
 ## License
 

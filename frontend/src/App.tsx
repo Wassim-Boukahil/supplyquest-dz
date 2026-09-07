@@ -7,6 +7,7 @@ import { EntityDetailPage, EntityListPage } from "./pages/EntityPages";
 import { InventoryPage, MovementsPage, TransfersPage } from "./pages/InventoryPages";
 import { OrderDetailPage, OrdersPage } from "./pages/OrderPages";
 import { IntelligenceAlertsPage, IntelligenceDashboardPage, IntelligenceInventoryPage, IntelligenceProductPage, IntelligenceRecommendationsPage, IntelligenceSuppliersPage, IntelligenceWarehousesPage } from "./pages/IntelligencePages";
+import { ForecastingOverviewPage, ForecastingProductPage } from "./pages/ForecastingPages";
 
 export function App() {
   const { user, loading } = useAuth();
@@ -31,6 +32,8 @@ export function App() {
     <Route path="/intelligence/warehouses" element={user ? <IntelligenceWarehousesPage /> : <Navigate to="/login" replace />} />
     <Route path="/intelligence/recommendations" element={user ? <IntelligenceRecommendationsPage /> : <Navigate to="/login" replace />} />
     <Route path="/intelligence/alerts" element={user ? <IntelligenceAlertsPage /> : <Navigate to="/login" replace />} />
+    <Route path="/forecasting" element={user ? <ForecastingOverviewPage /> : <Navigate to="/login" replace />} />
+    <Route path="/forecasting/products/:id" element={user ? <ForecastingProductPage /> : <Navigate to="/login" replace />} />
     <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
   </Routes>;
 }

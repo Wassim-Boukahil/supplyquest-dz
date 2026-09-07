@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ArrowRightLeft, BarChart3, Boxes, ChevronDown, CircleHelp, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Settings, ShoppingCart, Truck, Users, Warehouse } from "lucide-react";
+import { ArrowRightLeft, BarChart3, Boxes, ChevronDown, CircleHelp, ClipboardList, LayoutDashboard, LineChart, LogOut, Menu, Package, Settings, ShoppingCart, Truck, Users, Warehouse } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLocale, type Locale } from "../lib/i18n";
@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     [ShoppingCart, "Purchases", "/purchases"], [ShoppingCart, "Sales", "/sales"],
   ] as const;
   const intelligenceItems = [
-    [BarChart3, t("intelligence"), "/intelligence"], [ShieldIcon, t("recommendations"), "/intelligence/recommendations"], [AlertIcon, t("alerts"), "/intelligence/alerts"],
+    [BarChart3, t("intelligence"), "/intelligence"], [LineChart, t("forecasting"), "/forecasting"], [ShieldIcon, t("recommendations"), "/intelligence/recommendations"], [AlertIcon, t("alerts"), "/intelligence/alerts"],
   ] as const;
   return <div className="app-shell">
     <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>

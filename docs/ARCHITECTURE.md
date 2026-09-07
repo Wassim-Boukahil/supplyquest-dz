@@ -124,4 +124,29 @@ The API/domain boundaries leave a natural extension point for a later Python ana
 
 ## Deliberate non-decisions
 
-Redis, queues, search infrastructure, GraphQL, microservices, and a second database are intentionally absent. They would add operational complexity before the core domain and tenant boundaries are proven. Phase 1 can add transactional models and workflows without changing the auth or organization model.
+Redis, queues, search infrastructure, GraphQL, microservices, and a second database are intentionally absent. They would add operational complexity before the core domain and tenant boundaries are proven.
+
+## Phase 3: data science and forecasting
+
+Forecasting is a bounded analytics module, not a second application boundary. Node/Express owns authentication, role checks, tenant-scoped product/warehouse lookup, transaction aggregation, persistence, and API responses. The Python process receives a JSON payload containing daily SALE quantities that Node has already scoped to the organization; Python does not access PostgreSQL.
+
+```mermaid
+sequenceDiagram
+  participant Browser
+  participant Node as Express forecasting module
+  participant DB as PostgreSQL
+  participant Py as Python analytics process
+  Browser->>Node: POST /api/v1/forecasting/products/:id/generate
+  Node->>DB: Verify product + warehouse in organization
+  Node->>DB: Aggregate SALE transactions by UTC day
+  Node->>Py: JSON daily demand + horizon
+  Py-->>Node: JSON forecast, backtest, metrics, quality, uncertainty
+  Node->>DB: Persist ForecastRun + ForecastPoint
+  Node-->>Browser: Forecast + forecast-aware recommendation
+```
+
+The Python engine compares `NAIVE_LAST_VALUE`, `MOVING_AVERAGE_7_DAY`, and `EXPONENTIAL_SMOOTHING`. It supports 7/14/30-day horizons, chronological holdout backtesting, MAE, RMSE, and safe MAPE that excludes zero actuals. It also reports trend and a basic weekly seasonality signal. It requires 56 calendar days and 14 non-zero days for `SUFFICIENT`, marks shorter usable data as `LIMITED`, and withholds a model selection when data is `INSUFFICIENT`. Forecast quality is `HIGH`, `MEDIUM`, `LOW`, or `INSUFFICIENT_DATA`; an interval is stored only when backtest RMSE provides an empirical error basis.
+
+Forecast runs and forecast/backtest points are immutable history records. Current product detail loads the latest tenant-scoped run, while the run history and performance endpoints expose prior evaluations. Forecast-aware replenishment extends the Phase 2 baseline rather than replacing it: it uses selected forecast demand, supplier lead time, safety stock, available inventory, and a 14-day review signal, and labels the persisted recommendation `FORECAST_AWARE`. Missing/short history never creates an apparently confident replenishment signal.
+
+The analytics runtime currently uses Python standard-library primitives (`statistics`, `math`, and `datetime`) so the project has no hidden pandas/NumPy/scikit-learn requirement. This is deliberate for the current Replit environment; advanced model families can be introduced later behind the same JSON contract.

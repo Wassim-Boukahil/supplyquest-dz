@@ -132,17 +132,20 @@ async function seedOrganization(slug: string, name: string, index: number) {
   for (const [productIndex, product] of products.entries()) {
     for (const [warehouseIndex, warehouse] of warehouses.entries()) {
       const rate = saleRates[productIndex % saleRates.length];
-      const priorUnits = Math.round(rate * 32);
-      const baselineUnits = Math.round(rate * 14);
       const recentMultiplier = productIndex === 0 ? 1.8 : productIndex === 5 ? 0.55 : 1;
-      const recentUnits = Math.round(rate * recentMultiplier * 14);
-      const historicalSold = priorUnits + baselineUnits + recentUnits;
+      const dailyHistory = Array.from({ length: 84 }, (_, day) => {
+        const offset = 84 - day;
+        const multiplier = offset <= 14 ? recentMultiplier : offset <= 28 ? 1 : 0.85;
+        return { offset, units: Math.max(0, Math.round(rate * multiplier)) };
+      });
+      const historicalSold = dailyHistory.reduce((sum, entry) => sum + entry.units, 0);
       const quantity = productIndex === 0 ? 18 + warehouseIndex * 4 : productIndex === 1 ? 520 + warehouseIndex * 20 : productIndex === 5 ? 22 + warehouseIndex * 8 : 80 + productIndex * 4 + warehouseIndex * 15;
       const openingQuantity = quantity + historicalSold;
       await prisma.inventoryLevel.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, onHandQuantity: quantity } });
       await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, quantity: openingQuantity, type: "INITIAL_STOCK", reason: "Seeded opening balance", actorId, createdAt: new Date(now - 100 * 86400000) } });
-      for (const [units, offset, reason] of [[priorUnits, 32, "Seeded historical demand"], [baselineUnits, 18, "Seeded baseline demand"], [recentUnits, 4, "Seeded recent demand"]] as const) {
+      for (const { units, offset } of dailyHistory) {
         if (!units) continue;
+        const reason = offset <= 14 ? "Seeded recent demand" : offset <= 28 ? "Seeded baseline demand" : "Seeded historical demand";
         await prisma.inventoryTransaction.create({ data: { organizationId: organization.id, productId: product.id, warehouseId: warehouse.id, quantity: units, type: "SALE", referenceType: "SALES_ORDER", reason, actorId, createdAt: new Date(now - offset * 86400000) } });
       }
     }
